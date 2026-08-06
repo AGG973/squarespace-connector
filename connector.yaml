@@ -1,0 +1,120 @@
+provider: squarespace
+version: 0.1.0
+
+auth:
+  type: api_key
+  scheme: bearer
+  header: Authorization
+  format: "Bearer {api_key}"
+  notes: >
+    API key is sent as a Bearer token in the Authorization header.
+  required_headers:
+    - name: User-Agent
+      required: true
+      applies_to: all_requests
+      notes: Squarespace rejects requests that omit this header.
+
+base_urls:
+  commerce: https://api.squarespace.com/1.0/commerce/
+  contacts: https://api.squarespace.com/v1/contacts
+  notes: >
+    Commerce (products/orders/inventory) and Contacts are on different API
+    versions (1.0 vs v1). Do not conflate their base URLs or assume shared
+    request/response conventions.
+
+actions:
+  - id: squarespace.list_products
+    description: List products in the store catalog.
+    kind: read
+    request:
+      method: GET
+      base_url: commerce
+      path: /products
+    pagination:
+      type: cursor
+
+  - id: squarespace.get_or_adjust_inventory
+    description: Read current inventory levels or submit an inventory adjustment.
+    kind: read_write
+    operations:
+      - name: get_inventory
+        kind: read
+        request:
+          method: GET
+          base_url: commerce
+          path: /inventory
+      - name: adjust_inventory
+        kind: write
+        request:
+          method: POST
+          base_url: commerce
+          path: /inventory/adjustments
+        required_headers:
+          - name: Idempotency-Key
+            required: true
+        reversible: true
+        reversal_notes: An adjustment can be corrected by submitting an opposite adjustment.
+
+  - id: squarespace.list_orders
+    description: List orders, filterable by modification time window or fulfillment status.
+    kind: read
+    request:
+      method: GET
+      base_url: commerce
+      path: /orders
+    pagination:
+      type: cursor
+      alternative: time_range
+      time_range_params:
+        - modifiedAfter
+        - modifiedBefore
+    filters:
+      - fulfillmentStatus
+
+  - id: squarespace.create_order
+    description: Create a new order.
+    kind: write
+    request:
+      method: POST
+      base_url: commerce
+      path: /orders
+    required_headers:
+      - name: Idempotency-Key
+        required: true
+        notes: Squarespace rejects the request outright without this header.
+    rate_limit:
+      limit: 100
+      period: hour
+      scope: per_site
+    reversible: false
+    requires_approval: true
+
+  - id: squarespace.get_contact
+    description: Retrieve a contact record.
+    kind: read
+    request:
+      method: GET
+      base_url: contacts
+      path: /contacts
+
+error_handling:
+  source_shape:
+    type: string
+    subtype: string
+    message: string
+    contextId: string
+  normalized_shape:
+    code: string
+    message: string
+    httpStatus: integer
+    requestId: string
+    retryable: boolean
+  mapping:
+    code: "{type}.{subtype}"
+    message: message
+    requestId: contextId
+    httpStatus: from HTTP response status code
+    retryable: "true for 429 and 5xx responses, false otherwise"
+
+risks:
+  - none found, all four endpoint families reachable with current test key
