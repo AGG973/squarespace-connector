@@ -118,3 +118,5 @@ error_handling:
 
 risks:
   - none found, all four endpoint families reachable with current test key
+  - Requires Squarespace Core plan or higher for Orders/Inventory/Contacts — currently satisfied by test account
+   
