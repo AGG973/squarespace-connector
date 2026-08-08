@@ -1,0 +1,26 @@
+{
+  "inventory" : [
+    { "variantId" : "109e1be8-8aa4-4c61-a0f0-30a4f590f8f2", "sku" : "SQ1157834", "descriptor" : "Terra chunk [6]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "de4f3d9a-c3ff-4752-b5a6-73b12288c7cd", "sku" : "SQ4216337", "descriptor" : "Terra chunk [9]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "81d03129-8b5b-4d2f-8e81-895ddf0c20b3", "sku" : "SQ4464308", "descriptor" : "Terra chunk [11]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "5eb0c602-fd11-4807-b8d8-bfc96ecc677d", "sku" : "SQ5882442", "descriptor" : "Terra chunk [7]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "64f5e782-bfc6-465e-bc83-cb60141d495b", "sku" : "SQ5883842", "descriptor" : "Terra chunk [8]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "a7a4790a-3bbd-4b56-98ee-9795323db88e", "sku" : "SQ7652823", "descriptor" : "Terra chunk [10]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "1e47ba2d-c337-484e-9abb-f2d166923fe3", "sku" : "SQ1103645", "descriptor" : "Naranja heel [6]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "a184c145-21f2-4342-8a16-f51ae4e25f52", "sku" : "SQ1587103", "descriptor" : "Naranja heel [10]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "c8cad859-11f5-47cf-a095-af046420382e", "sku" : "SQ2032378", "descriptor" : "Naranja heel [8]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "dc674abb-2e34-4d9c-bde9-d174f2047317", "sku" : "SQ5888846", "descriptor" : "Naranja heel [11]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "b3a00dc6-0ff2-41ca-94de-1cbac7f87a68", "sku" : "SQ8218132", "descriptor" : "Naranja heel [9]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "d41fb4f2-29e0-4f42-aa98-8f8b2f381442", "sku" : "SQ8834481", "descriptor" : "Naranja heel [7]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "9728dad1-209b-484e-ab8e-40eb565d756b", "sku" : "SQ1306686", "descriptor" : "Chiquita heel [10]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "d0c98ea0-3c32-49c1-b8c7-ba057c67da79", "sku" : "SQ3648251", "descriptor" : "Chiquita heel [6]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "6e8a08c3-fd99-4529-9025-f712cc79d5fb", "sku" : "SQ3760411", "descriptor" : "Chiquita heel [7]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "3d69cfbc-4a35-4c1b-8b5e-d694d15e3c32", "sku" : "SQ4177785", "descriptor" : "Chiquita heel [11]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "bf39271a-6f15-4f6c-ae48-668386c7a61c", "sku" : "SQ7318005", "descriptor" : "Chiquita heel [8]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "f1b3626a-585e-4b5c-a0e9-f16b058f0ae7", "sku" : "SQ8211127", "descriptor" : "Chiquita heel [9]", "quantity" : 1, "isUnlimited" : false },
+    { "variantId" : "303079a3-a085-45aa-8814-ce63e140c2b4", "sku" : "SQ4985207", "descriptor" : "Test Product — Canvas Tote Bag [Small]", "quantity" : 10, "isUnlimited" : false },
+    { "variantId" : "627d44e9-3f68-4ea4-a34b-794dcbbbc6db", "sku" : "SQ5971216", "descriptor" : "Test Product — Canvas Tote Bag [Medium]", "quantity" : 10, "isUnlimited" : false },
+    { "variantId" : "2327cdd7-f807-4cfe-b3e9-23f3e60e3026", "sku" : "SQ7396198", "descriptor" : "Test Product — Canvas Tote Bag [Large]", "quantity" : 10, "isUnlimited" : false }
+  ],
+  "pagination" : { "nextPageUrl" : null, "nextPageCursor" : null, "hasNextPage" : false }
+}

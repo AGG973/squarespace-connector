@@ -1,0 +1,48 @@
+{
+  "_comment" : "PLACEHOLDER — not yet verified against live API, confirm in Week 2 when create_order is actually implemented and tested.",
+  "id" : "00000000-0000-0000-0000-000000000000",
+  "orderNumber" : "1",
+  "createdOn" : "2026-01-01T00:00:00.000Z",
+  "modifiedOn" : "2026-01-01T00:00:00.000Z",
+  "testmode" : true,
+  "customerEmail" : "placeholder@example.com",
+  "billingAddress" : {
+    "firstName" : "Placeholder",
+    "lastName" : "Customer",
+    "address1" : "123 Example St",
+    "address2" : null,
+    "city" : "Brooklyn",
+    "state" : "NY",
+    "countryCode" : "US",
+    "postalCode" : "11201",
+    "phone" : "555-0100"
+  },
+  "shippingAddress" : {
+    "firstName" : "Placeholder",
+    "lastName" : "Customer",
+    "address1" : "123 Example St",
+    "address2" : null,
+    "city" : "Brooklyn",
+    "state" : "NY",
+    "countryCode" : "US",
+    "postalCode" : "11201",
+    "phone" : "555-0100"
+  },
+  "fulfillmentStatus" : "PENDING",
+  "lineItems" : [
+    {
+      "id" : "00000000-0000-0000-0000-000000000001",
+      "variantId" : "303079a3-a085-45aa-8814-ce63e140c2b4",
+      "sku" : "SQ4985207",
+      "productName" : "Test Product — Canvas Tote Bag",
+      "quantity" : 1,
+      "unitPricePaid" : { "currency" : "USD", "value" : "25.00" }
+    }
+  ],
+  "subtotal" : { "currency" : "USD", "value" : "25.00" },
+  "shippingTotal" : { "currency" : "USD", "value" : "5.00" },
+  "discountTotal" : { "currency" : "USD", "value" : "0.00" },
+  "taxTotal" : { "currency" : "USD", "value" : "2.22" },
+  "refundedTotal" : { "currency" : "USD", "value" : "0.00" },
+  "grandTotal" : { "currency" : "USD", "value" : "32.22" }
+}

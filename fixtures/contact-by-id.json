@@ -1,0 +1,22 @@
+{
+  "_comment" : "PLACEHOLDER — not yet verified against live API, confirm in Week 2 when get_contact is actually implemented and tested.",
+  "id" : "00000000-0000-0000-0000-000000000000",
+  "email" : "placeholder@example.com",
+  "firstName" : "Placeholder",
+  "lastName" : "Contact",
+  "transactionalEmailStatus" : "SUBSCRIBED",
+  "createdOn" : "2026-01-01T00:00:00.000Z",
+  "lastModifiedOn" : "2026-01-01T00:00:00.000Z",
+  "address" : {
+    "address1" : "123 Example St",
+    "address2" : null,
+    "city" : "Brooklyn",
+    "state" : "NY",
+    "countryCode" : "US",
+    "postalCode" : "11201"
+  },
+  "phoneNumbers" : [ "555-0100" ],
+  "notes" : [ ],
+  "lists" : [ ],
+  "tags" : [ ]
+}
