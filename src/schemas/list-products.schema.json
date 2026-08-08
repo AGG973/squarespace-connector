@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/list-products.schema.json",
+  "title": "squarespace.list_products",
+  "description": "Input/output contract for listing products in the store catalog. GET /products on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: implemented in src/actions/list-products.ts, but no real GET /products response has been captured to fixtures/ yet — the top-level `products` key and the `pagination` shape are confirmed, while the per-product fields below are modelled, not verified. Variant IDs and SKUs used in the example are real, taken from fixtures/inventory.json.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "ListProductsInput",
+      "type": "object",
+      "description": "All fields optional. Squarespace cursor pagination is exclusive: when `cursor` is supplied it must be the only parameter, which `dependentSchemas` enforces here. NOTE: src/actions/list-products.ts does not yet enforce that rule.",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque cursor from a previous response's pagination.nextPageCursor."
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Page size. The API's maximum accepted value has not been verified against the live API."
+        }
+      },
+      "dependentSchemas": {
+        "cursor": {
+          "maxProperties": 1,
+          "description": "When paging by cursor, no other query parameters may be sent."
+        }
+      }
+    },
+    "output": {
+      "title": "ListProductsResult",
+      "type": "object",
+      "required": ["products", "pagination"],
+      "properties": {
+        "products": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/product" }
+        },
+        "pagination": { "$ref": "#/$defs/pagination" }
+      }
+    }
+  },
+  "examples": [
+    {
+      "input": { "limit": 1 },
+      "output": {
+        "products": [
+          {
+            "id": "6813b0c8f4a2b10001f3a9d1",
+            "type": "PHYSICAL",
+            "storePageId": "6813b0c8f4a2b10001f3a9c0",
+            "name": "Test Product — Canvas Tote Bag",
+            "description": "<p>A sturdy cotton canvas tote.</p>",
+            "url": "https://example.squarespace.com/shop/canvas-tote-bag",
+            "urlSlug": "canvas-tote-bag",
+            "tags": ["bags"],
+            "isVisible": true,
+            "variantAttributes": ["Size"],
+            "variants": [
+              {
+                "id": "303079a3-a085-45aa-8814-ce63e140c2b4",
+                "sku": "SQ4985207",
+                "attributes": { "Size": "Small" },
+                "pricing": {
+                  "basePrice": { "currency": "USD", "value": "25.00" },
+                  "onSale": false
+                },
+                "stock": { "quantity": 10, "unlimited": false }
+              },
+              {
+                "id": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
+                "sku": "SQ5971216",
+                "attributes": { "Size": "Medium" },
+                "pricing": {
+                  "basePrice": { "currency": "USD", "value": "25.00" },
+                  "onSale": false
+                },
+                "stock": { "quantity": 10, "unlimited": false }
+              },
+              {
+                "id": "2327cdd7-f807-4cfe-b3e9-23f3e60e3026",
+                "sku": "SQ7396198",
+                "attributes": { "Size": "Large" },
+                "pricing": {
+                  "basePrice": { "currency": "USD", "value": "25.00" },
+                  "onSale": false
+                },
+                "stock": { "quantity": 10, "unlimited": false }
+              }
+            ],
+            "createdOn": "2026-05-02T14:11:03.000Z",
+            "modifiedOn": "2026-05-02T14:11:03.000Z"
+          }
+        ],
+        "pagination": {
+          "nextPageUrl": "https://api.squarespace.com/1.0/commerce/products?cursor=abc123",
+          "nextPageCursor": "abc123",
+          "hasNextPage": true
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "pagination": {
+      "title": "Pagination",
+      "type": "object",
+      "description": "Cursor pagination envelope. Shape confirmed against fixtures/inventory.json, fixtures/orders.json and fixtures/contacts.json.",
+      "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
+      "properties": {
+        "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
+        "nextPageCursor": { "type": ["string", "null"] },
+        "hasNextPage": { "type": "boolean" }
+      }
+    },
+    "money": {
+      "title": "Money",
+      "type": "object",
+      "description": "Monetary amount. Squarespace returns the value as a decimal string, not a number.",
+      "required": ["currency", "value"],
+      "properties": {
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 4217 currency code."
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^-?\\d+(\\.\\d+)?$"
+        }
+      }
+    },
+    "variant": {
+      "title": "ProductVariant",
+      "type": "object",
+      "required": ["id", "sku"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "sku": { "type": "string" },
+        "attributes": {
+          "type": "object",
+          "description": "Keys correspond to the product's variantAttributes, e.g. { \"Size\": \"Small\" }.",
+          "additionalProperties": { "type": "string" }
+        },
+        "pricing": {
+          "type": "object",
+          "properties": {
+            "basePrice": { "$ref": "#/$defs/money" },
+            "salePrice": { "$ref": "#/$defs/money" },
+            "onSale": { "type": "boolean" }
+          }
+        },
+        "stock": {
+          "type": "object",
+          "properties": {
+            "quantity": { "type": "integer", "minimum": 0 },
+            "unlimited": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "product": {
+      "title": "Product",
+      "type": "object",
+      "required": ["id", "name", "variants"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["PHYSICAL", "DIGITAL", "SERVICE", "GIFT_CARD"],
+          "description": "Enum members are modelled from the Squarespace product types and are not yet verified against a live response."
+        },
+        "storePageId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string", "description": "HTML string." },
+        "url": { "type": "string", "format": "uri" },
+        "urlSlug": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "isVisible": { "type": "boolean" },
+        "variantAttributes": { "type": "array", "items": { "type": "string" } },
+        "variants": { "type": "array", "items": { "$ref": "#/$defs/variant" } },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "altText": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "modifiedOn": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

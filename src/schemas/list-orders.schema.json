@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/list-orders.schema.json",
+  "title": "squarespace.list_orders",
+  "description": "Input/output contract for listing orders. GET /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: the response envelope is verified against fixtures/orders.json — note the top-level array key is `result`, NOT `orders`, unlike list_products (`products`) and get_contact's list form (`contacts`). The per-order fields are NOT verified: the store had zero orders when the fixture was captured, so the Order shape below is modelled and kept consistent with fixtures/create-order-response.json.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "ListOrdersInput",
+      "type": "object",
+      "description": "All fields optional. Two mutually exclusive paging strategies: an opaque `cursor`, or a modification-time window. Per connector.yaml, `modifiedAfter` and `modifiedBefore` must be supplied together.",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque cursor from a previous response's pagination.nextPageCursor."
+        },
+        "limit": { "type": "integer", "minimum": 1 },
+        "modifiedAfter": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601. Must be paired with modifiedBefore."
+        },
+        "modifiedBefore": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601. Must be paired with modifiedAfter."
+        },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" }
+      },
+      "dependentRequired": {
+        "modifiedAfter": ["modifiedBefore"],
+        "modifiedBefore": ["modifiedAfter"]
+      },
+      "dependentSchemas": {
+        "cursor": {
+          "maxProperties": 1,
+          "description": "When paging by cursor, no other query parameters may be sent."
+        }
+      }
+    },
+    "output": {
+      "title": "ListOrdersResult",
+      "type": "object",
+      "required": ["result", "pagination"],
+      "properties": {
+        "result": {
+          "type": "array",
+          "description": "Verified key name — the orders endpoint uses `result`, not `orders`.",
+          "items": { "$ref": "#/$defs/order" }
+        },
+        "pagination": { "$ref": "#/$defs/pagination" }
+      }
+    }
+  },
+  "examples": [
+    {
+      "input": {
+        "modifiedAfter": "2026-01-01T00:00:00.000Z",
+        "modifiedBefore": "2026-08-08T00:00:00.000Z",
+        "fulfillmentStatus": "PENDING"
+      },
+      "output": {
+        "result": [
+          {
+            "id": "6813b0c8f4a2b10001f3aa01",
+            "orderNumber": "1",
+            "createdOn": "2026-06-14T09:22:41.000Z",
+            "modifiedOn": "2026-06-14T09:22:41.000Z",
+            "testmode": false,
+            "customerEmail": "buyer@example.com",
+            "fulfillmentStatus": "PENDING",
+            "billingAddress": {
+              "firstName": "Ada",
+              "lastName": "Lovelace",
+              "address1": "123 Example St",
+              "address2": null,
+              "city": "Brooklyn",
+              "state": "NY",
+              "countryCode": "US",
+              "postalCode": "11201",
+              "phone": "555-0100"
+            },
+            "shippingAddress": {
+              "firstName": "Ada",
+              "lastName": "Lovelace",
+              "address1": "123 Example St",
+              "address2": null,
+              "city": "Brooklyn",
+              "state": "NY",
+              "countryCode": "US",
+              "postalCode": "11201",
+              "phone": "555-0100"
+            },
+            "lineItems": [
+              {
+                "id": "6813b0c8f4a2b10001f3aa02",
+                "variantId": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
+                "sku": "SQ5971216",
+                "productName": "Test Product — Canvas Tote Bag",
+                "quantity": 2,
+                "unitPricePaid": { "currency": "USD", "value": "25.00" }
+              }
+            ],
+            "subtotal": { "currency": "USD", "value": "50.00" },
+            "shippingTotal": { "currency": "USD", "value": "5.00" },
+            "discountTotal": { "currency": "USD", "value": "0.00" },
+            "taxTotal": { "currency": "USD", "value": "4.44" },
+            "refundedTotal": { "currency": "USD", "value": "0.00" },
+            "grandTotal": { "currency": "USD", "value": "59.44" }
+          }
+        ],
+        "pagination": {
+          "nextPageUrl": null,
+          "nextPageCursor": null,
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "input": {},
+      "output": {
+        "result": [],
+        "pagination": {
+          "nextPageUrl": null,
+          "nextPageCursor": null,
+          "hasNextPage": false
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "pagination": {
+      "title": "Pagination",
+      "type": "object",
+      "description": "Cursor pagination envelope. Verified against fixtures/orders.json.",
+      "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
+      "properties": {
+        "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
+        "nextPageCursor": { "type": ["string", "null"] },
+        "hasNextPage": { "type": "boolean" }
+      }
+    },
+    "money": {
+      "title": "Money",
+      "type": "object",
+      "required": ["currency", "value"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "value": { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" }
+      }
+    },
+    "fulfillmentStatus": {
+      "type": "string",
+      "enum": ["PENDING", "FULFILLED", "CANCELED"],
+      "description": "UNVERIFIED enum members — confirm against a live order before relying on these values."
+    },
+    "address": {
+      "title": "Address",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "address1": { "type": "string" },
+        "address2": { "type": ["string", "null"] },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postalCode": { "type": "string" },
+        "phone": { "type": "string" }
+      }
+    },
+    "lineItem": {
+      "title": "OrderLineItem",
+      "type": "object",
+      "required": ["id", "quantity"],
+      "properties": {
+        "id": { "type": "string" },
+        "variantId": { "type": ["string", "null"], "format": "uuid" },
+        "sku": { "type": ["string", "null"] },
+        "productName": { "type": "string" },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPricePaid": { "$ref": "#/$defs/money" }
+      }
+    },
+    "order": {
+      "title": "Order",
+      "type": "object",
+      "description": "UNVERIFIED — modelled, kept consistent with fixtures/create-order-response.json.",
+      "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "modifiedOn": { "type": "string", "format": "date-time" },
+        "testmode": { "type": "boolean" },
+        "customerEmail": { "type": "string", "format": "email" },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "billingAddress": { "$ref": "#/$defs/address" },
+        "shippingAddress": { "$ref": "#/$defs/address" },
+        "lineItems": { "type": "array", "items": { "$ref": "#/$defs/lineItem" } },
+        "subtotal": { "$ref": "#/$defs/money" },
+        "shippingTotal": { "$ref": "#/$defs/money" },
+        "discountTotal": { "$ref": "#/$defs/money" },
+        "taxTotal": { "$ref": "#/$defs/money" },
+        "refundedTotal": { "$ref": "#/$defs/money" },
+        "grandTotal": { "$ref": "#/$defs/money" }
+      }
+    }
+  }
+}

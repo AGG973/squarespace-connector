@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/create-order.schema.json",
+  "title": "squarespace.create_order",
+  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: NOTHING HERE IS VERIFIED — no order has ever been created against the live API. The output mirrors the placeholder in fixtures/create-order-response.json and the input is modelled from the documented create-order endpoint. Confirm both in Week 2 before implementing.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "CreateOrderInput",
+      "type": "object",
+      "description": "UNVERIFIED. Monetary totals are supplied by the caller rather than computed by the API, so they must be internally consistent with lineItems.",
+      "required": [
+        "idempotencyKey",
+        "customerEmail",
+        "lineItems",
+        "grandTotal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "idempotencyKey": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Sent as the Idempotency-Key request header, not in the body. Required — the request fails without it. Reuse the same key when retrying so a retry cannot create a duplicate order."
+        },
+        "channelName": {
+          "type": "string",
+          "description": "Sales channel label recorded on the order, e.g. \"doo-connector\"."
+        },
+        "externalOrderReference": {
+          "type": "string",
+          "description": "Caller-side identifier for reconciliation."
+        },
+        "customerEmail": { "type": "string", "format": "email" },
+        "billingAddress": { "$ref": "#/$defs/address" },
+        "shippingAddress": { "$ref": "#/$defs/address" },
+        "inventoryBehavior": {
+          "type": "string",
+          "enum": ["DECREMENT", "NONE"],
+          "default": "NONE",
+          "description": "UNVERIFIED. Whether creating the order draws down stock."
+        },
+        "lineItems": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/lineItemInput" }
+        },
+        "shippingLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "amount"],
+            "properties": {
+              "method": { "type": "string" },
+              "amount": { "$ref": "#/$defs/money" }
+            }
+          }
+        },
+        "discountLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "amount"],
+            "properties": {
+              "name": { "type": "string" },
+              "amount": { "$ref": "#/$defs/money" },
+              "promoCode": { "type": "string" }
+            }
+          }
+        },
+        "priceTaxInterpretation": {
+          "type": "string",
+          "enum": ["EXCLUSIVE", "INCLUSIVE"],
+          "default": "EXCLUSIVE"
+        },
+        "subtotal": { "$ref": "#/$defs/money" },
+        "shippingTotal": { "$ref": "#/$defs/money" },
+        "discountTotal": { "$ref": "#/$defs/money" },
+        "taxTotal": { "$ref": "#/$defs/money" },
+        "grandTotal": { "$ref": "#/$defs/money" },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" }
+      }
+    },
+    "output": {
+      "title": "CreateOrderResult",
+      "$ref": "#/$defs/order"
+    }
+  },
+  "examples": [
+    {
+      "input": {
+        "idempotencyKey": "9f8e7d6c-5b4a-4321-9876-543210fedcba",
+        "channelName": "doo-connector",
+        "externalOrderReference": "DOO-2026-000117",
+        "customerEmail": "buyer@example.com",
+        "billingAddress": {
+          "firstName": "Ada",
+          "lastName": "Lovelace",
+          "address1": "123 Example St",
+          "address2": null,
+          "city": "Brooklyn",
+          "state": "NY",
+          "countryCode": "US",
+          "postalCode": "11201",
+          "phone": "555-0100"
+        },
+        "shippingAddress": {
+          "firstName": "Ada",
+          "lastName": "Lovelace",
+          "address1": "123 Example St",
+          "address2": null,
+          "city": "Brooklyn",
+          "state": "NY",
+          "countryCode": "US",
+          "postalCode": "11201",
+          "phone": "555-0100"
+        },
+        "inventoryBehavior": "DECREMENT",
+        "lineItems": [
+          {
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "sku": "SQ4985207",
+            "productName": "Test Product — Canvas Tote Bag",
+            "quantity": 1,
+            "unitPricePaid": { "currency": "USD", "value": "25.00" }
+          }
+        ],
+        "shippingLines": [
+          {
+            "method": "Standard Shipping",
+            "amount": { "currency": "USD", "value": "5.00" }
+          }
+        ],
+        "priceTaxInterpretation": "EXCLUSIVE",
+        "subtotal": { "currency": "USD", "value": "25.00" },
+        "shippingTotal": { "currency": "USD", "value": "5.00" },
+        "discountTotal": { "currency": "USD", "value": "0.00" },
+        "taxTotal": { "currency": "USD", "value": "2.22" },
+        "grandTotal": { "currency": "USD", "value": "32.22" },
+        "fulfillmentStatus": "PENDING"
+      },
+      "output": {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "orderNumber": "1",
+        "createdOn": "2026-01-01T00:00:00.000Z",
+        "modifiedOn": "2026-01-01T00:00:00.000Z",
+        "testmode": true,
+        "customerEmail": "placeholder@example.com",
+        "billingAddress": {
+          "firstName": "Placeholder",
+          "lastName": "Customer",
+          "address1": "123 Example St",
+          "address2": null,
+          "city": "Brooklyn",
+          "state": "NY",
+          "countryCode": "US",
+          "postalCode": "11201",
+          "phone": "555-0100"
+        },
+        "shippingAddress": {
+          "firstName": "Placeholder",
+          "lastName": "Customer",
+          "address1": "123 Example St",
+          "address2": null,
+          "city": "Brooklyn",
+          "state": "NY",
+          "countryCode": "US",
+          "postalCode": "11201",
+          "phone": "555-0100"
+        },
+        "fulfillmentStatus": "PENDING",
+        "lineItems": [
+          {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "sku": "SQ4985207",
+            "productName": "Test Product — Canvas Tote Bag",
+            "quantity": 1,
+            "unitPricePaid": { "currency": "USD", "value": "25.00" }
+          }
+        ],
+        "subtotal": { "currency": "USD", "value": "25.00" },
+        "shippingTotal": { "currency": "USD", "value": "5.00" },
+        "discountTotal": { "currency": "USD", "value": "0.00" },
+        "taxTotal": { "currency": "USD", "value": "2.22" },
+        "refundedTotal": { "currency": "USD", "value": "0.00" },
+        "grandTotal": { "currency": "USD", "value": "32.22" }
+      }
+    }
+  ],
+  "$defs": {
+    "money": {
+      "title": "Money",
+      "type": "object",
+      "required": ["currency", "value"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "value": { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" }
+      }
+    },
+    "fulfillmentStatus": {
+      "type": "string",
+      "enum": ["PENDING", "FULFILLED", "CANCELED"],
+      "description": "UNVERIFIED enum members."
+    },
+    "address": {
+      "title": "Address",
+      "type": "object",
+      "required": ["address1", "city", "countryCode", "postalCode"],
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "address1": { "type": "string" },
+        "address2": { "type": ["string", "null"] },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postalCode": { "type": "string" },
+        "phone": { "type": "string" }
+      }
+    },
+    "lineItemInput": {
+      "title": "CreateOrderLineItem",
+      "type": "object",
+      "required": ["quantity", "unitPricePaid"],
+      "description": "Identify the item by variantId where possible; sku and productName are for non-catalog or historical items.",
+      "properties": {
+        "variantId": { "type": "string", "format": "uuid" },
+        "sku": { "type": "string" },
+        "productName": { "type": "string" },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPricePaid": { "$ref": "#/$defs/money" }
+      }
+    },
+    "lineItem": {
+      "title": "OrderLineItem",
+      "type": "object",
+      "required": ["id", "quantity"],
+      "properties": {
+        "id": { "type": "string" },
+        "variantId": { "type": ["string", "null"], "format": "uuid" },
+        "sku": { "type": ["string", "null"] },
+        "productName": { "type": "string" },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPricePaid": { "$ref": "#/$defs/money" }
+      }
+    },
+    "order": {
+      "title": "Order",
+      "type": "object",
+      "description": "UNVERIFIED — mirrors fixtures/create-order-response.json, itself a placeholder.",
+      "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "modifiedOn": { "type": "string", "format": "date-time" },
+        "testmode": { "type": "boolean" },
+        "customerEmail": { "type": "string", "format": "email" },
+        "billingAddress": { "$ref": "#/$defs/address" },
+        "shippingAddress": { "$ref": "#/$defs/address" },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "lineItems": { "type": "array", "items": { "$ref": "#/$defs/lineItem" } },
+        "subtotal": { "$ref": "#/$defs/money" },
+        "shippingTotal": { "$ref": "#/$defs/money" },
+        "discountTotal": { "$ref": "#/$defs/money" },
+        "taxTotal": { "$ref": "#/$defs/money" },
+        "refundedTotal": { "$ref": "#/$defs/money" },
+        "grandTotal": { "$ref": "#/$defs/money" }
+      }
+    }
+  }
+}

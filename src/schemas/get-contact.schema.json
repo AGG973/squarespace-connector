@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/get-contact.schema.json",
+  "title": "squarespace.get_contact",
+  "description": "Input/output contract for retrieving a single contact record. Contacts live on their own base URL and API version: https://api.squarespace.com/v1/contacts (v1), NOT the 1.0 commerce base. Two open questions carried over from connector.yaml: (1) that base already ends in /contacts while the action declares path /contacts, which would double the segment — src/client.ts resolves this by treating the base as the collection root and appending only the id; (2) the v1-vs-1.0 split is itself unconfirmed, since every live call so far returned 401. VERIFICATION STATUS: the LIST envelope in fixtures/contacts.json is real ({ contacts: [], pagination }), but the store had zero contacts, so the single-Contact shape below is modelled from fixtures/contact-by-id.json, itself a placeholder. Confirm before implementing.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "GetContactInput",
+      "type": "object",
+      "description": "UNVERIFIED. Retrieval is by contact id, appended to the contacts collection root.",
+      "required": ["contactId"],
+      "additionalProperties": false,
+      "properties": {
+        "contactId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Contact identifier. Observed ids elsewhere in this API are UUIDs, but no real contact id has been captured, so no format is enforced."
+        }
+      }
+    },
+    "output": {
+      "title": "GetContactResult",
+      "$ref": "#/$defs/contact"
+    }
+  },
+  "examples": [
+    {
+      "input": { "contactId": "00000000-0000-0000-0000-000000000000" },
+      "output": {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "email": "placeholder@example.com",
+        "firstName": "Placeholder",
+        "lastName": "Contact",
+        "transactionalEmailStatus": "SUBSCRIBED",
+        "createdOn": "2026-01-01T00:00:00.000Z",
+        "lastModifiedOn": "2026-01-01T00:00:00.000Z",
+        "address": {
+          "address1": "123 Example St",
+          "address2": null,
+          "city": "Brooklyn",
+          "state": "NY",
+          "countryCode": "US",
+          "postalCode": "11201"
+        },
+        "phoneNumbers": ["555-0100"],
+        "notes": [],
+        "lists": [],
+        "tags": []
+      }
+    }
+  ],
+  "$defs": {
+    "pagination": {
+      "title": "Pagination",
+      "type": "object",
+      "description": "Cursor pagination envelope. Verified against fixtures/contacts.json. Unused by this single-record action; retained for the list form documented below.",
+      "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
+      "properties": {
+        "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
+        "nextPageCursor": { "type": ["string", "null"] },
+        "hasNextPage": { "type": "boolean" }
+      }
+    },
+    "contactAddress": {
+      "title": "ContactAddress",
+      "type": "object",
+      "description": "Note this has no firstName/lastName/phone, unlike the commerce Address used on orders.",
+      "properties": {
+        "address1": { "type": "string" },
+        "address2": { "type": ["string", "null"] },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postalCode": { "type": "string" }
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "type": "object",
+      "description": "UNVERIFIED — mirrors fixtures/contact-by-id.json, itself a placeholder.",
+      "required": ["id", "email"],
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "firstName": { "type": ["string", "null"] },
+        "lastName": { "type": ["string", "null"] },
+        "transactionalEmailStatus": {
+          "type": "string",
+          "enum": ["SUBSCRIBED", "UNSUBSCRIBED", "PENDING"],
+          "description": "UNVERIFIED enum members."
+        },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "lastModifiedOn": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Note the contacts API uses `lastModifiedOn` where commerce uses `modifiedOn`."
+        },
+        "address": { "$ref": "#/$defs/contactAddress" },
+        "phoneNumbers": { "type": "array", "items": { "type": "string" } },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "content": { "type": "string" },
+              "createdOn": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "lists": {
+          "type": "array",
+          "description": "Mailing lists the contact belongs to.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" }
+            }
+          }
+        },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "contactListResult": {
+      "title": "ContactListResult",
+      "type": "object",
+      "description": "NOT the output of this action — documented here because its envelope IS verified against fixtures/contacts.json. Use it if a list_contacts action is added later. Note the array key is `contacts`, unlike orders (`result`).",
+      "required": ["contacts", "pagination"],
+      "properties": {
+        "contacts": { "type": "array", "items": { "$ref": "#/$defs/contact" } },
+        "pagination": { "$ref": "#/$defs/pagination" }
+      }
+    }
+  }
+}

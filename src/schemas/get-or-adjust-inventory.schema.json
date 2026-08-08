@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/get-or-adjust-inventory.schema.json",
+  "title": "squarespace.get_or_adjust_inventory",
+  "description": "Input/output contract for the two-operation inventory action on the commerce base URL (https://api.squarespace.com/1.0/commerce). get_inventory = GET /inventory (read). adjust_inventory = POST /inventory/adjustments (write, requires an Idempotency-Key header, reversible by submitting an opposite adjustment). VERIFICATION STATUS: the get_inventory output is fully verified — it mirrors the real 21-record capture in fixtures/inventory.json. The adjust_inventory request body and response are NOT verified: the three-array operation form below is modelled on the documented Squarespace adjustments endpoint and must be confirmed before implementation.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "GetOrAdjustInventoryInput",
+      "description": "Discriminated on `operation`.",
+      "oneOf": [
+        { "$ref": "#/$defs/getInventoryInput" },
+        { "$ref": "#/$defs/adjustInventoryInput" }
+      ]
+    },
+    "output": {
+      "title": "GetOrAdjustInventoryResult",
+      "oneOf": [
+        { "$ref": "#/$defs/getInventoryOutput" },
+        { "$ref": "#/$defs/adjustInventoryOutput" }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "input": { "operation": "get_inventory", "limit": 3 },
+      "output": {
+        "inventory": [
+          {
+            "variantId": "109e1be8-8aa4-4c61-a0f0-30a4f590f8f2",
+            "sku": "SQ1157834",
+            "descriptor": "Terra chunk [6]",
+            "quantity": 1,
+            "isUnlimited": false
+          },
+          {
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "sku": "SQ4985207",
+            "descriptor": "Test Product — Canvas Tote Bag [Small]",
+            "quantity": 10,
+            "isUnlimited": false
+          },
+          {
+            "variantId": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
+            "sku": "SQ5971216",
+            "descriptor": "Test Product — Canvas Tote Bag [Medium]",
+            "quantity": 10,
+            "isUnlimited": false
+          }
+        ],
+        "pagination": {
+          "nextPageUrl": null,
+          "nextPageCursor": null,
+          "hasNextPage": false
+        }
+      }
+    },
+    {
+      "input": {
+        "operation": "adjust_inventory",
+        "idempotencyKey": "d1f2a3b4-5c6d-4e7f-8a9b-0c1d2e3f4a5b",
+        "incrementOperations": [
+          {
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "quantity": -1
+          }
+        ]
+      },
+      "output": { "adjusted": true }
+    }
+  ],
+  "$defs": {
+    "pagination": {
+      "title": "Pagination",
+      "type": "object",
+      "description": "Cursor pagination envelope. Verified against fixtures/inventory.json.",
+      "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
+      "properties": {
+        "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
+        "nextPageCursor": { "type": ["string", "null"] },
+        "hasNextPage": { "type": "boolean" }
+      }
+    },
+    "inventoryItem": {
+      "title": "InventoryItem",
+      "type": "object",
+      "description": "All five fields were present on every one of the 21 records in fixtures/inventory.json, so all five are required here.",
+      "required": ["variantId", "sku", "descriptor", "quantity", "isUnlimited"],
+      "properties": {
+        "variantId": { "type": "string", "format": "uuid" },
+        "sku": {
+          "type": "string",
+          "description": "Squarespace-generated SKUs look like SQ1157834, but merchant-set SKUs are free-form, so no pattern is enforced."
+        },
+        "descriptor": {
+          "type": "string",
+          "description": "Human-readable label, e.g. \"Terra chunk [6]\" — product name with the variant attributes in brackets."
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Meaningless when isUnlimited is true."
+        },
+        "isUnlimited": { "type": "boolean" }
+      }
+    },
+    "getInventoryInput": {
+      "title": "GetInventoryInput",
+      "type": "object",
+      "required": ["operation"],
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "const": "get_inventory" },
+        "cursor": { "type": "string", "minLength": 1 },
+        "limit": { "type": "integer", "minimum": 1 }
+      },
+      "dependentSchemas": {
+        "cursor": {
+          "maxProperties": 2,
+          "description": "With `operation`, cursor must be the only other parameter."
+        }
+      }
+    },
+    "getInventoryOutput": {
+      "title": "GetInventoryOutput",
+      "type": "object",
+      "required": ["inventory", "pagination"],
+      "properties": {
+        "inventory": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/inventoryItem" }
+        },
+        "pagination": { "$ref": "#/$defs/pagination" }
+      }
+    },
+    "adjustInventoryInput": {
+      "title": "AdjustInventoryInput",
+      "type": "object",
+      "description": "UNVERIFIED. At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey`.",
+      "required": ["operation", "idempotencyKey"],
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": ["incrementOperations"],
+          "properties": { "incrementOperations": true }
+        },
+        {
+          "required": ["setFiniteOperations"],
+          "properties": { "setFiniteOperations": true }
+        },
+        {
+          "required": ["setUnlimitedOperations"],
+          "properties": { "setUnlimitedOperations": true }
+        }
+      ],
+      "properties": {
+        "operation": { "const": "adjust_inventory" },
+        "idempotencyKey": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Sent as the Idempotency-Key request header, not in the body."
+        },
+        "incrementOperations": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Relative adjustments. Negative quantities decrement.",
+          "items": {
+            "type": "object",
+            "required": ["variantId", "quantity"],
+            "additionalProperties": false,
+            "properties": {
+              "variantId": { "type": "string", "format": "uuid" },
+              "quantity": { "type": "integer" }
+            }
+          }
+        },
+        "setFiniteOperations": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Absolute stock levels.",
+          "items": {
+            "type": "object",
+            "required": ["variantId", "quantity"],
+            "additionalProperties": false,
+            "properties": {
+              "variantId": { "type": "string", "format": "uuid" },
+              "quantity": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "setUnlimitedOperations": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Switch variants to unlimited stock.",
+          "items": {
+            "type": "object",
+            "required": ["variantId"],
+            "additionalProperties": false,
+            "properties": {
+              "variantId": { "type": "string", "format": "uuid" }
+            }
+          }
+        }
+      }
+    },
+    "adjustInventoryOutput": {
+      "title": "AdjustInventoryOutput",
+      "type": "object",
+      "description": "UNVERIFIED. The live endpoint may answer 204 No Content with an empty body, in which case the connector should synthesise this acknowledgement rather than parse one.",
+      "required": ["adjusted"],
+      "properties": {
+        "adjusted": { "type": "boolean" }
+      }
+    }
+  }
+}
