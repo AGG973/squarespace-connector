@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/list-products.schema.json",
   "title": "squarespace.list_products",
-  "description": "Input/output contract for listing products in the store catalog. GET /products on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: implemented in src/actions/list-products.ts, but no real GET /products response has been captured to fixtures/ yet — the top-level `products` key and the `pagination` shape are confirmed, while the per-product fields below are modelled, not verified. Variant IDs and SKUs used in the example are real, taken from fixtures/inventory.json.",
+  "description": "Input/output contract for listing products in the store catalog. GET /products on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: verified against a real GET /products response, captured to fixtures/products.json. The top-level `products` key, `pagination` shape, and the per-product/per-variant fields below (images, tags, seoOptions, digitalGood, per-variant stock/attributes/shippingMeasurements, etc.) are all confirmed from that capture. All 4 captured products are `type: PHYSICAL`, so the `DIGITAL`/`SERVICE`/`GIFT_CARD` enum members, the non-null shapes of product-level `pricing`/`digitalGood`, and a non-null variant `image` remain unverified — flagged individually below.",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
@@ -49,56 +49,55 @@
       "output": {
         "products": [
           {
-            "id": "6813b0c8f4a2b10001f3a9d1",
+            "id": "6a72f2378d7a8a3a29161789",
             "type": "PHYSICAL",
-            "storePageId": "6813b0c8f4a2b10001f3a9c0",
+            "storePageId": "6a72f2207b60d851f2d2f110",
             "name": "Test Product — Canvas Tote Bag",
-            "description": "<p>A sturdy cotton canvas tote.</p>",
-            "url": "https://example.squarespace.com/shop/canvas-tote-bag",
-            "urlSlug": "canvas-tote-bag",
-            "tags": ["bags"],
-            "isVisible": true,
+            "description": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Sample product created for Squarespace connector testing.</p>",
+            "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/test-product-canvas-tote-bag",
+            "urlSlug": "p/test-product-canvas-tote-bag",
+            "images": [
+              {
+                "id": "6a72f40a98f72327f79ad890",
+                "altText": "tote bag.jpg",
+                "orderIndex": 0,
+                "url": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+                "originalSize": { "width": 1200, "height": 1600 },
+                "availableFormats": []
+              }
+            ],
+            "tags": [],
+            "isVisible": false,
             "variantAttributes": ["Size"],
             "variants": [
               {
                 "id": "303079a3-a085-45aa-8814-ce63e140c2b4",
                 "sku": "SQ4985207",
+                "pricing": {
+                  "basePrice": { "currency": "USD", "value": "20.00" },
+                  "salePrice": { "currency": "USD", "value": "0.00" },
+                  "onSale": false
+                },
+                "stock": { "quantity": 10, "unlimited": false },
                 "attributes": { "Size": "Small" },
-                "pricing": {
-                  "basePrice": { "currency": "USD", "value": "25.00" },
-                  "onSale": false
+                "shippingMeasurements": {
+                  "weight": { "unit": "POUND", "value": 0 },
+                  "dimensions": { "unit": "INCH", "length": 0, "width": 0, "height": 0 }
                 },
-                "stock": { "quantity": 10, "unlimited": false }
-              },
-              {
-                "id": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
-                "sku": "SQ5971216",
-                "attributes": { "Size": "Medium" },
-                "pricing": {
-                  "basePrice": { "currency": "USD", "value": "25.00" },
-                  "onSale": false
-                },
-                "stock": { "quantity": 10, "unlimited": false }
-              },
-              {
-                "id": "2327cdd7-f807-4cfe-b3e9-23f3e60e3026",
-                "sku": "SQ7396198",
-                "attributes": { "Size": "Large" },
-                "pricing": {
-                  "basePrice": { "currency": "USD", "value": "25.00" },
-                  "onSale": false
-                },
-                "stock": { "quantity": 10, "unlimited": false }
+                "image": null
               }
             ],
-            "createdOn": "2026-05-02T14:11:03.000Z",
-            "modifiedOn": "2026-05-02T14:11:03.000Z"
+            "seoOptions": null,
+            "createdOn": "2026-08-05T08:20:07.834Z",
+            "modifiedOn": "2026-08-05T08:27:55.973Z",
+            "pricing": null,
+            "digitalGood": null
           }
         ],
         "pagination": {
-          "nextPageUrl": "https://api.squarespace.com/1.0/commerce/products?cursor=abc123",
-          "nextPageCursor": "abc123",
-          "hasNextPage": true
+          "nextPageUrl": null,
+          "nextPageCursor": null,
+          "hasNextPage": false
         }
       }
     }
@@ -107,7 +106,7 @@
     "pagination": {
       "title": "Pagination",
       "type": "object",
-      "description": "Cursor pagination envelope. Shape confirmed against fixtures/inventory.json, fixtures/orders.json and fixtures/contacts.json.",
+      "description": "Cursor pagination envelope. Shape confirmed against fixtures/inventory.json, fixtures/orders.json, fixtures/contacts.json, and fixtures/products.json.",
       "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
       "properties": {
         "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
@@ -132,10 +131,36 @@
         }
       }
     },
+    "image": {
+      "title": "ProductImage",
+      "type": "object",
+      "description": "Confirmed against fixtures/products.json.",
+      "required": ["id", "altText", "orderIndex", "url", "originalSize", "availableFormats"],
+      "properties": {
+        "id": { "type": "string" },
+        "altText": { "type": "string", "description": "Empty string when unset, not null." },
+        "orderIndex": { "type": "integer", "minimum": 0 },
+        "url": { "type": "string", "format": "uri" },
+        "originalSize": {
+          "type": "object",
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 0 },
+            "height": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "availableFormats": {
+          "type": "array",
+          "description": "Available resized widths, e.g. \"100w\". Can be empty.",
+          "items": { "type": "string" }
+        }
+      }
+    },
     "variant": {
       "title": "ProductVariant",
       "type": "object",
-      "required": ["id", "sku"],
+      "description": "Confirmed against fixtures/products.json (18 variants across 4 products).",
+      "required": ["id", "sku", "pricing", "stock", "attributes", "shippingMeasurements", "image"],
       "properties": {
         "id": { "type": "string", "format": "uuid" },
         "sku": { "type": "string" },
@@ -146,6 +171,7 @@
         },
         "pricing": {
           "type": "object",
+          "required": ["basePrice", "salePrice", "onSale"],
           "properties": {
             "basePrice": { "$ref": "#/$defs/money" },
             "salePrice": { "$ref": "#/$defs/money" },
@@ -154,23 +180,72 @@
         },
         "stock": {
           "type": "object",
+          "required": ["quantity", "unlimited"],
           "properties": {
             "quantity": { "type": "integer", "minimum": 0 },
             "unlimited": { "type": "boolean" }
           }
+        },
+        "shippingMeasurements": {
+          "type": "object",
+          "description": "Confirmed against fixtures/products.json. All-zero weight/dimensions observed on every sampled variant — plausible defaults rather than confirmed non-zero behavior.",
+          "required": ["weight", "dimensions"],
+          "properties": {
+            "weight": {
+              "type": "object",
+              "required": ["unit", "value"],
+              "properties": {
+                "unit": { "type": "string", "description": "Only \"POUND\" observed; other units unverified." },
+                "value": { "type": "number", "minimum": 0 }
+              }
+            },
+            "dimensions": {
+              "type": "object",
+              "required": ["unit", "length", "width", "height"],
+              "properties": {
+                "unit": { "type": "string", "description": "Only \"INCH\" observed; other units unverified." },
+                "length": { "type": "number", "minimum": 0 },
+                "width": { "type": "number", "minimum": 0 },
+                "height": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "image": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — every variant captured in fixtures/products.json has image: null. Presumably a per-variant override of the product's images[], shape unconfirmed."
         }
       }
     },
     "product": {
       "title": "Product",
       "type": "object",
-      "required": ["id", "name", "variants"],
+      "description": "Confirmed against fixtures/products.json, a real GET /products response (4 products, all type PHYSICAL).",
+      "required": [
+        "id",
+        "type",
+        "storePageId",
+        "name",
+        "description",
+        "url",
+        "urlSlug",
+        "images",
+        "tags",
+        "isVisible",
+        "variantAttributes",
+        "variants",
+        "seoOptions",
+        "createdOn",
+        "modifiedOn",
+        "pricing",
+        "digitalGood"
+      ],
       "properties": {
         "id": { "type": "string" },
         "type": {
           "type": "string",
           "enum": ["PHYSICAL", "DIGITAL", "SERVICE", "GIFT_CARD"],
-          "description": "Enum members are modelled from the Squarespace product types and are not yet verified against a live response."
+          "description": "PHYSICAL confirmed against fixtures/products.json. DIGITAL/SERVICE/GIFT_CARD are modelled from Squarespace's product types and not yet verified against a live response."
         },
         "storePageId": { "type": "string" },
         "name": { "type": "string" },
@@ -183,17 +258,26 @@
         "variants": { "type": "array", "items": { "$ref": "#/$defs/variant" } },
         "images": {
           "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "url": { "type": "string", "format": "uri" },
-              "altText": { "type": ["string", "null"] }
-            }
+          "items": { "$ref": "#/$defs/image" }
+        },
+        "seoOptions": {
+          "type": ["object", "null"],
+          "description": "null observed on one product, { title: \"\", description: \"\" } on two others — both confirmed shapes.",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" }
           }
         },
         "createdOn": { "type": "string", "format": "date-time" },
-        "modifiedOn": { "type": "string", "format": "date-time" }
+        "modifiedOn": { "type": "string", "format": "date-time" },
+        "pricing": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — null on every captured product (all 4 have per-variant pricing instead). Presumably populated for products without variants; shape unconfirmed."
+        },
+        "digitalGood": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — null on every captured product (all 4 are type PHYSICAL). Presumably populated for type: DIGITAL; shape unconfirmed."
+        }
       }
     }
   }

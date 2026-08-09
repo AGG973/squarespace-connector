@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "test": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run",
+    "typecheck": "tsc --noEmit",
+    "check": "node --env-file-if-exists=.env src/check-connection.ts",
+    "check:actions": "node --env-file-if-exists=.env src/check-actions.ts"
   },
   "repository": {
     "type": "git",
@@ -14,7 +16,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/AGG973/squarespace-connector/issues"
   },

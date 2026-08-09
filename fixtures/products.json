@@ -1,0 +1,915 @@
+{
+  "products": [
+    {
+      "id": "6a72f2378d7a8a3a29161789",
+      "type": "PHYSICAL",
+      "storePageId": "6a72f2207b60d851f2d2f110",
+      "name": "Test Product — Canvas Tote Bag",
+      "description": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Sample product created for Squarespace connector testing.</p>",
+      "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/test-product-canvas-tote-bag",
+      "urlSlug": "p/test-product-canvas-tote-bag",
+      "images": [
+        {
+          "id": "6a72f40a98f72327f79ad890",
+          "altText": "tote bag.jpg",
+          "orderIndex": 0,
+          "url": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+          "originalSize": {
+            "width": 1200,
+            "height": 1600
+          },
+          "availableFormats": []
+        }
+      ],
+      "tags": [],
+      "isVisible": false,
+      "variantAttributes": [
+        "Size"
+      ],
+      "variants": [
+        {
+          "id": "303079a3-a085-45aa-8814-ce63e140c2b4",
+          "sku": "SQ4985207",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "20.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 10,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "Small"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
+          "sku": "SQ5971216",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "20.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 10,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "Medium"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "2327cdd7-f807-4cfe-b3e9-23f3e60e3026",
+          "sku": "SQ7396198",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "20.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 10,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "Large"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        }
+      ],
+      "seoOptions": null,
+      "createdOn": "2026-08-05T08:20:07.834Z",
+      "modifiedOn": "2026-08-05T08:27:55.973Z",
+      "pricing": null,
+      "digitalGood": null
+    },
+    {
+      "id": "6a72f2207b60d851f2d2f11a",
+      "type": "PHYSICAL",
+      "storePageId": "6a72f2207b60d851f2d2f110",
+      "name": "Terra chunk",
+      "description": "<p>Handcrafted and made to last, this pair of shoes features a slip-on design and chunky sole. Made from vegan leather.</p>",
+      "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/terra-chunk-dghr4",
+      "urlSlug": "p/terra-chunk-dghr4",
+      "images": [
+        {
+          "id": "6a72f2207b60d851f2d2f11c",
+          "altText": "",
+          "orderIndex": 0,
+          "url": "https://static1.squarespace.com/static/6a72f2207b60d851f2d2f0f0/6a72f2207b60d851f2d2f110/6a72f2207b60d851f2d2f11c/1654587159613/Stocksy_comp_3483297-reduced+copy.jpg",
+          "originalSize": {
+            "width": 1046,
+            "height": 1570
+          },
+          "availableFormats": [
+            "100w",
+            "300w",
+            "500w",
+            "750w",
+            "1000w"
+          ]
+        }
+      ],
+      "tags": [
+        "Collection No.2"
+      ],
+      "isVisible": true,
+      "variantAttributes": [
+        "Size"
+      ],
+      "variants": [
+        {
+          "id": "109e1be8-8aa4-4c61-a0f0-30a4f590f8f2",
+          "sku": "SQ1157834",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "6"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "5eb0c602-fd11-4807-b8d8-bfc96ecc677d",
+          "sku": "SQ5882442",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "7"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "64f5e782-bfc6-465e-bc83-cb60141d495b",
+          "sku": "SQ5883842",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "8"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "de4f3d9a-c3ff-4752-b5a6-73b12288c7cd",
+          "sku": "SQ4216337",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "9"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "a7a4790a-3bbd-4b56-98ee-9795323db88e",
+          "sku": "SQ7652823",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "10"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "81d03129-8b5b-4d2f-8e81-895ddf0c20b3",
+          "sku": "SQ4464308",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "129.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "11"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        }
+      ],
+      "seoOptions": {
+        "title": "",
+        "description": ""
+      },
+      "createdOn": "2020-11-12T18:05:49.372Z",
+      "modifiedOn": "2026-06-30T18:06:44.234Z",
+      "pricing": null,
+      "digitalGood": null
+    },
+    {
+      "id": "6a72f2207b60d851f2d2f11e",
+      "type": "PHYSICAL",
+      "storePageId": "6a72f2207b60d851f2d2f110",
+      "name": "Naranja heel",
+      "description": "<p>Handcrafted and made to last, this pair of shoes features a versatile design and supportive heel. Made from vegan leather.</p>",
+      "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/naranja-heel-tadmg",
+      "urlSlug": "p/naranja-heel-tadmg",
+      "images": [
+        {
+          "id": "6a72f2207b60d851f2d2f120",
+          "altText": "",
+          "orderIndex": 0,
+          "url": "https://static1.squarespace.com/static/6a72f2207b60d851f2d2f0f0/6a72f2207b60d851f2d2f110/6a72f2207b60d851f2d2f120/1654587159639/Stocksy_comp_2304353-REDUCED.jpg",
+          "originalSize": {
+            "width": 922,
+            "height": 1382
+          },
+          "availableFormats": [
+            "100w",
+            "300w",
+            "500w",
+            "750w"
+          ]
+        }
+      ],
+      "tags": [
+        "Collection No.2"
+      ],
+      "isVisible": true,
+      "variantAttributes": [
+        "Size"
+      ],
+      "variants": [
+        {
+          "id": "1e47ba2d-c337-484e-9abb-f2d166923fe3",
+          "sku": "SQ1103645",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "6"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "d41fb4f2-29e0-4f42-aa98-8f8b2f381442",
+          "sku": "SQ8834481",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "7"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "c8cad859-11f5-47cf-a095-af046420382e",
+          "sku": "SQ2032378",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "8"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "b3a00dc6-0ff2-41ca-94de-1cbac7f87a68",
+          "sku": "SQ8218132",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "9"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "a184c145-21f2-4342-8a16-f51ae4e25f52",
+          "sku": "SQ1587103",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "10"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "dc674abb-2e34-4d9c-bde9-d174f2047317",
+          "sku": "SQ5888846",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "165.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "11"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        }
+      ],
+      "seoOptions": {
+        "title": "",
+        "description": ""
+      },
+      "createdOn": "2020-11-12T18:04:32.710Z",
+      "modifiedOn": "2026-06-30T18:06:38.793Z",
+      "pricing": null,
+      "digitalGood": null
+    },
+    {
+      "id": "6a72f2207b60d851f2d2f122",
+      "type": "PHYSICAL",
+      "storePageId": "6a72f2207b60d851f2d2f110",
+      "name": "Chiquita heel",
+      "description": "<p>Handcrafted and made to last, this pair of shoes features a sole, straps, and a supportive heel. Made from vegan leather.</p>",
+      "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/chiquita-wallet-nc294",
+      "urlSlug": "p/chiquita-wallet-nc294",
+      "images": [
+        {
+          "id": "6a72f2207b60d851f2d2f124",
+          "altText": "",
+          "orderIndex": 0,
+          "url": "https://static1.squarespace.com/static/6a72f2207b60d851f2d2f0f0/6a72f2207b60d851f2d2f110/6a72f2207b60d851f2d2f124/1654587159622/Stocksy_comp_3865192+copy.jpg",
+          "originalSize": {
+            "width": 2500,
+            "height": 3750
+          },
+          "availableFormats": [
+            "100w",
+            "300w",
+            "500w",
+            "750w",
+            "1000w",
+            "1500w",
+            "2500w",
+            "2500w"
+          ]
+        }
+      ],
+      "tags": [
+        "Collection No.2"
+      ],
+      "isVisible": true,
+      "variantAttributes": [
+        "Size"
+      ],
+      "variants": [
+        {
+          "id": "d0c98ea0-3c32-49c1-b8c7-ba057c67da79",
+          "sku": "SQ3648251",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "6"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "6e8a08c3-fd99-4529-9025-f712cc79d5fb",
+          "sku": "SQ3760411",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "7"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "bf39271a-6f15-4f6c-ae48-668386c7a61c",
+          "sku": "SQ7318005",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "8"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "f1b3626a-585e-4b5c-a0e9-f16b058f0ae7",
+          "sku": "SQ8211127",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "9"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "9728dad1-209b-484e-ab8e-40eb565d756b",
+          "sku": "SQ1306686",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "10"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        },
+        {
+          "id": "3d69cfbc-4a35-4c1b-8b5e-d694d15e3c32",
+          "sku": "SQ4177785",
+          "pricing": {
+            "basePrice": {
+              "currency": "USD",
+              "value": "120.00"
+            },
+            "salePrice": {
+              "currency": "USD",
+              "value": "0.00"
+            },
+            "onSale": false
+          },
+          "stock": {
+            "quantity": 1,
+            "unlimited": false
+          },
+          "attributes": {
+            "Size": "11"
+          },
+          "shippingMeasurements": {
+            "weight": {
+              "unit": "POUND",
+              "value": 0
+            },
+            "dimensions": {
+              "unit": "INCH",
+              "length": 0,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "image": null
+        }
+      ],
+      "seoOptions": {
+        "title": "",
+        "description": ""
+      },
+      "createdOn": "2020-11-12T18:04:59.841Z",
+      "modifiedOn": "2026-06-30T18:06:32.703Z",
+      "pricing": null,
+      "digitalGood": null
+    }
+  ],
+  "pagination": {
+    "nextPageCursor": null,
+    "nextPageUrl": null,
+    "hasNextPage": false
+  }
+}

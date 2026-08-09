@@ -2,9 +2,12 @@
  * Low-level HTTP client for the Squarespace API.
  *
  * Deliberately thin: it resolves the base URL, attaches auth headers, handles
- * the documented 429 cooldown, and parses successful JSON. Error normalization
- * (see `error_handling` in connector.yaml) is NOT done here yet.
+ * the documented 429 cooldown, and parses successful JSON. Error responses are
+ * normalized per the `error_handling` mapping in connector.yaml (see
+ * `src/errors/normalize.ts`) before being thrown.
  */
+
+import { normalizeError, type NormalizedError } from "./errors/normalize.ts";
 
 /** Commerce API — products, orders, inventory. */
 const COMMERCE_BASE_URL = "https://api.squarespace.com/1.0/commerce";
@@ -36,19 +39,22 @@ export interface RequestOptions {
 /**
  * Thrown for any non-2xx response that isn't resolved by the 429 retry.
  *
- * The response body is attached verbatim as an unparsed string — mapping it to
- * the normalized `{ code, message, httpStatus, requestId, retryable }` shape is
- * separate work.
+ * Carries the normalized `{ code, message, httpStatus, requestId, retryable }`
+ * shape (see `src/errors/normalize.ts`) rather than the raw Squarespace body.
  */
-export class SquarespaceHttpError extends Error {
-  readonly status: number;
-  readonly body: string;
+export class SquarespaceError extends Error implements NormalizedError {
+  readonly code: string;
+  readonly httpStatus: number;
+  readonly requestId: string;
+  readonly retryable: boolean;
 
-  constructor(status: number, body: string) {
-    super(`Squarespace request failed with HTTP ${status}`);
-    this.name = "SquarespaceHttpError";
-    this.status = status;
-    this.body = body;
+  constructor(normalized: NormalizedError) {
+    super(normalized.message);
+    this.name = "SquarespaceError";
+    this.code = normalized.code;
+    this.httpStatus = normalized.httpStatus;
+    this.requestId = normalized.requestId;
+    this.retryable = normalized.retryable;
   }
 }
 
@@ -89,7 +95,7 @@ export function resolveUrl(path: string): string {
 /**
  * Issues a request against the Squarespace API and returns the parsed JSON body.
  *
- * @throws {SquarespaceHttpError} on any non-2xx response (after one retry for 429).
+ * @throws {SquarespaceError} on any non-2xx response (after one retry for 429).
  */
 export async function squarespaceRequest<T = unknown>(
   path: string,
@@ -117,7 +123,14 @@ export async function squarespaceRequest<T = unknown>(
   }
 
   if (!response.ok) {
-    throw new SquarespaceHttpError(response.status, await response.text());
+    const rawText = await response.text();
+    let rawBody: unknown;
+    try {
+      rawBody = rawText ? JSON.parse(rawText) : undefined;
+    } catch {
+      rawBody = undefined;
+    }
+    throw new SquarespaceError(normalizeError(response.status, rawBody));
   }
 
   return (await response.json()) as T;

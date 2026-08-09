@@ -1,4 +1,4 @@
-import { squarespaceRequest } from "../client";
+import { squarespaceRequest } from "../client.ts";
 
 export interface ListProductsInput {
   cursor?: string;
