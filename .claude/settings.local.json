@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "squarespace"
+  ],
+  "enableAllProjectMcpServers": true
+}

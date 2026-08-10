@@ -1,0 +1,58 @@
+import { afterEach, describe, expect, it } from "vitest";
+
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+
+import { server } from "../mcp/server.ts";
+
+/**
+ * Drives the real `server` (its actual registered tools/list handler, not a
+ * re-implementation of it) over a linked in-memory transport pair — no real
+ * stdio, no subprocess.
+ */
+async function connectClient(): Promise<Client> {
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "test-client", version: "0.0.0" });
+
+  await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+  return client;
+}
+
+describe("mcp/server tools/list", () => {
+  let client: Client | undefined;
+
+  afterEach(async () => {
+    await client?.close();
+    client = undefined;
+  });
+
+  it("returns exactly the 3 expected tools with valid-looking schemas", async () => {
+    client = await connectClient();
+
+    const { tools } = await client.listTools();
+
+    expect(tools.map((tool) => tool.name)).toEqual([
+      "testConnection",
+      "squarespace.list_products",
+      "squarespace.list_orders",
+    ]);
+
+    for (const tool of tools) {
+      expect(tool.inputSchema.type).toBe("object");
+      expect(typeof tool.description).toBe("string");
+      expect(tool.description!.length).toBeGreaterThan(0);
+    }
+
+    const listProducts = tools.find((tool) => tool.name === "squarespace.list_products");
+    expect(listProducts?.inputSchema.properties).toHaveProperty("cursor");
+    expect(listProducts?.inputSchema.properties).toHaveProperty("limit");
+
+    const listOrders = tools.find((tool) => tool.name === "squarespace.list_orders");
+    expect(listOrders?.inputSchema.properties).toHaveProperty("modifiedAfter");
+    expect(listOrders?.inputSchema.properties).toHaveProperty("fulfillmentStatus");
+
+    const testConnection = tools.find((tool) => tool.name === "testConnection");
+    expect(testConnection?.inputSchema.properties).toEqual({});
+  });
+});

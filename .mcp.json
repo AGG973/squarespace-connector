@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "squarespace": {
+      "command": "node",
+      "args": ["--env-file-if-exists=.env", "mcp/server.ts"]
+    }
+  }
+}
