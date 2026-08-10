@@ -63,11 +63,25 @@
         "incrementOperations": [
           {
             "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
-            "quantity": -1
+            "quantity": 1
           }
         ]
       },
       "output": { "adjusted": true }
+    },
+    {
+      "input": {
+        "operation": "adjust_inventory",
+        "idempotencyKey": "3fa1e6b2-9d47-4c2e-8a10-6d5b7e9c1f04",
+        "setFiniteOperations": [
+          {
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "quantity": 10
+          }
+        ]
+      },
+      "output": { "adjusted": true },
+      "description": "Decrementing stock: set an absolute target quantity — there is no negative incrementOperations equivalent."
     }
   ],
   "$defs": {
@@ -137,8 +151,8 @@
     "adjustInventoryInput": {
       "title": "AdjustInventoryInput",
       "type": "object",
-      "description": "UNVERIFIED. At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey`.",
-      "required": ["operation", "idempotencyKey"],
+      "description": "UNVERIFIED. At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately.",
+      "required": ["operation"],
       "additionalProperties": false,
       "anyOf": [
         {
@@ -159,19 +173,23 @@
         "idempotencyKey": {
           "type": "string",
           "format": "uuid",
-          "description": "Sent as the Idempotency-Key request header, not in the body."
+          "description": "Sent as the Idempotency-Key request header, not in the body. Optional — the connector generates a fresh UUID when omitted."
         },
         "incrementOperations": {
           "type": "array",
           "minItems": 1,
-          "description": "Relative adjustments. Negative quantities decrement.",
+          "description": "Adds stock only — quantity must be >= 1. There is no decrement-via-increment: negative quantities are rejected by Squarespace outright (see the `quantity` field note below). To reduce stock, use setFiniteOperations with an absolute target quantity instead.",
           "items": {
             "type": "object",
             "required": ["variantId", "quantity"],
             "additionalProperties": false,
             "properties": {
               "variantId": { "type": "string", "format": "uuid" },
-              "quantity": { "type": "integer" }
+              "quantity": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "CONFIRMED LIVE — negative values disproven, 2026-08-10: Squarespace responds 400 INVALID_REQUEST_ERROR, \"quantity must be between 1 and 1000000000, inclusive.\" for quantity < 1."
+              }
             }
           }
         },

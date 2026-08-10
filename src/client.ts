@@ -133,5 +133,10 @@ export async function squarespaceRequest<T = unknown>(
     throw new SquarespaceError(normalizeError(response.status, rawBody));
   }
 
-  return (await response.json()) as T;
+  // Some write endpoints (e.g. inventory adjustments, per its schema's notes)
+  // may answer 204 No Content on success — response.json() throws on an
+  // empty body, so read text first and only parse when there's something to
+  // parse.
+  const rawText = await response.text();
+  return (rawText ? JSON.parse(rawText) : undefined) as T;
 }

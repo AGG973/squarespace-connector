@@ -39,9 +39,13 @@ function loadInputSchema(fileName: string): Tool["inputSchema"] {
     throw new Error(`${fileName}: expected a properties.input schema, found none.`);
   }
 
-  return (
-    schema.$defs ? { ...inputSchema, $defs: schema.$defs } : inputSchema
-  ) as Tool["inputSchema"];
+  const withDefs = schema.$defs ? { ...inputSchema, $defs: schema.$defs } : inputSchema;
+
+  // MCP's Tool.inputSchema requires a literal `type: "object"`. Most of our
+  // schemas declare it directly on `input`, but get-or-adjust-inventory's is
+  // a bare `oneOf` of two object shapes (discriminated read/write modes) —
+  // inject it here rather than changing the schema file's semantics.
+  return ("type" in withDefs ? withDefs : { type: "object", ...withDefs }) as Tool["inputSchema"];
 }
 
 const TOOLS: Tool[] = [
@@ -59,6 +63,15 @@ const TOOLS: Tool[] = [
     name: "squarespace.list_orders",
     description: "List orders, filterable by modification time window or fulfillment status.",
     inputSchema: loadInputSchema("list-orders.schema.json"),
+  },
+  {
+    name: "squarespace.get_or_adjust_inventory",
+    description:
+      "Read current inventory levels, or submit a stock adjustment. Mode is inferred from " +
+      "input: pass incrementOperations/setFiniteOperations/setUnlimitedOperations to adjust " +
+      "(write, requires Idempotency-Key — auto-generated if idempotencyKey is omitted), " +
+      "otherwise this reads. The adjust path is UNVERIFIED against the live API.",
+    inputSchema: loadInputSchema("get-or-adjust-inventory.schema.json"),
   },
 ];
 
@@ -92,7 +105,11 @@ async function callTool(
     return result.success ? textResult(result) : textResult(describeError(result.error), true);
   }
 
-  if (name === "squarespace.list_products" || name === "squarespace.list_orders") {
+  if (
+    name === "squarespace.list_products" ||
+    name === "squarespace.list_orders" ||
+    name === "squarespace.get_or_adjust_inventory"
+  ) {
     const output = await execute({ actionId: name, input: args });
     return textResult(output);
   }

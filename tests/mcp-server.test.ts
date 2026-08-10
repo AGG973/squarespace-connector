@@ -27,7 +27,7 @@ describe("mcp/server tools/list", () => {
     client = undefined;
   });
 
-  it("returns exactly the 3 expected tools with valid-looking schemas", async () => {
+  it("returns exactly the 4 expected tools with valid-looking schemas", async () => {
     client = await connectClient();
 
     const { tools } = await client.listTools();
@@ -36,6 +36,7 @@ describe("mcp/server tools/list", () => {
       "testConnection",
       "squarespace.list_products",
       "squarespace.list_orders",
+      "squarespace.get_or_adjust_inventory",
     ]);
 
     for (const tool of tools) {
@@ -54,5 +55,12 @@ describe("mcp/server tools/list", () => {
 
     const testConnection = tools.find((tool) => tool.name === "testConnection");
     expect(testConnection?.inputSchema.properties).toEqual({});
+
+    const inventory = tools.find((tool) => tool.name === "squarespace.get_or_adjust_inventory");
+    // This one's `input` schema is a bare `oneOf` in the source file, with no
+    // top-level `properties` — confirms the type:"object" injection in
+    // loadInputSchema() ran without losing the oneOf/$defs.
+    expect(inventory?.inputSchema.oneOf).toBeInstanceOf(Array);
+    expect(inventory?.inputSchema.$defs).toHaveProperty("adjustInventoryInput");
   });
 });
