@@ -27,7 +27,7 @@ describe("mcp/server tools/list", () => {
     client = undefined;
   });
 
-  it("returns exactly the 5 expected tools with valid-looking schemas", async () => {
+  it("returns exactly the 6 expected tools with valid-looking schemas", async () => {
     client = await connectClient();
 
     const { tools } = await client.listTools();
@@ -38,6 +38,7 @@ describe("mcp/server tools/list", () => {
       "squarespace.list_orders",
       "squarespace.get_or_adjust_inventory",
       "squarespace.create_order",
+      "squarespace.get_contact",
     ]);
 
     for (const tool of tools) {
@@ -80,5 +81,9 @@ describe("mcp/server tools/list", () => {
     // Squarespace's official contract, 2026-08-10.
     expect(createOrder?.inputSchema.required).not.toContain("customerEmail");
     expect(createOrder?.inputSchema.required).not.toContain("idempotencyKey");
+
+    const getContact = tools.find((tool) => tool.name === "squarespace.get_contact");
+    expect(getContact?.inputSchema.required).toEqual(["id"]);
+    expect(getContact?.inputSchema.properties).toHaveProperty("id");
   });
 });

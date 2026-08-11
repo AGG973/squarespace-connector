@@ -88,6 +88,16 @@ const TOOLS: Tool[] = [
       "idempotencyKey is omitted.",
     inputSchema: loadInputSchema("create-order.schema.json"),
   },
+  {
+    name: "squarespace.get_contact",
+    description:
+      "Retrieve a single contact by id. URL resolution, auth, and response SHAPE all " +
+      "CONFIRMED live, 2026-08-11 (resolves to /v1/contacts/{id} without doubling the " +
+      "segment; verified against one real contact). Response is wrapped in a top-level " +
+      "`contact` key, with primaryEmail.{email, acceptsMarketing} rather than a flat email " +
+      "field. Requires id.",
+    inputSchema: loadInputSchema("get-contact.schema.json"),
+  },
 ];
 
 /** Pulls `{ code, message, ... }`-shaped details out of any thrown value for error content. */
@@ -124,7 +134,8 @@ async function callTool(
     name === "squarespace.list_products" ||
     name === "squarespace.list_orders" ||
     name === "squarespace.get_or_adjust_inventory" ||
-    name === "squarespace.create_order"
+    name === "squarespace.create_order" ||
+    name === "squarespace.get_contact"
   ) {
     const output = await execute({ actionId: name, input: args });
     return textResult(output);
