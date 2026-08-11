@@ -2,60 +2,69 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/create-order.schema.json",
   "title": "squarespace.create_order",
-  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: NOTHING HERE IS VERIFIED — no order has ever been created against the live API. The output mirrors the placeholder in fixtures/create-order-response.json and the input is modelled from the documented create-order endpoint. Confirm both in Week 2 before implementing.",
+  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: the REQUEST shape below now matches Squarespace's official documented CreateOrderRequest/CreateLineItemRequest contract, reconciled 2026-08-10 directly against that authoritative source — superseding the shape previously inferred from 4 live 400 rejections and from the read-side/response shape. Field-level confidence varies: lineItemType \"PHYSICAL_PRODUCT\" is confirmed correct for physical products; for that lineItemType, title is CONFIRMED live, 2026-08-11, to be forbidden (must be null or omitted — \"lineItems.title must be null or omitted\" when lineItemType is PHYSICAL_PRODUCT), correcting the earlier assumption that title was unconditionally required — title's requirement for any OTHER lineItemType value remains UNCONFIRMED, no data yet; shopperFulfillmentNotificationBehavior is a confirmed enum, exactly \"SEND\" or \"SKIP\"; nonSaleUnitPrice's optionality is inferred from its descriptive purpose, not explicitly confirmed; fulfillments' item shape remains unconfirmed (an empty array is the safe default). END-TO-END SUCCESS IS STILL UNVERIFIED — no order has ever been successfully created against the live API. The output side is unchanged by this reconciliation and still mirrors the placeholder in fixtures/create-order-response.json.",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
     "input": {
       "title": "CreateOrderInput",
       "type": "object",
-      "description": "UNVERIFIED. Monetary totals are supplied by the caller rather than computed by the API, so they must be internally consistent with lineItems.",
+      "description": "Matches Squarespace's official CreateOrderRequest contract (reconciled 2026-08-10). Monetary totals are supplied by the caller rather than computed by the API, so they must be internally consistent with lineItems.",
       "required": [
-        "idempotencyKey",
-        "customerEmail",
+        "channelName",
+        "createdOn",
+        "externalOrderReference",
+        "fulfillments",
+        "grandTotal",
         "lineItems",
-        "grandTotal"
+        "priceTaxInterpretation"
       ],
       "additionalProperties": false,
       "properties": {
         "idempotencyKey": {
           "type": "string",
           "format": "uuid",
-          "description": "Sent as the Idempotency-Key request header, not in the body. Required — the request fails without it. Reuse the same key when retrying so a retry cannot create a duplicate order."
+          "description": "Sent as the Idempotency-Key request header, not in the body. Optional on this input — the connector generates a fresh UUID when omitted, and reuses the caller's when supplied. Reuse the same key when retrying so a retry cannot create a duplicate order."
         },
         "channelName": {
           "type": "string",
-          "description": "Sales channel label recorded on the order, e.g. \"doo-connector\"."
+          "maxLength": 30,
+          "description": "Sales channel label recorded on the order, e.g. \"doo-connector\". REQUIRED, max length 30 — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10."
+        },
+        "createdOn": {
+          "type": "string",
+          "format": "date-time",
+          "description": "REQUIRED — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10. The caller supplies this order-creation timestamp (ISO 8601); it is not computed by the API."
         },
         "externalOrderReference": {
           "type": "string",
-          "description": "Caller-side identifier for reconciliation."
+          "maxLength": 200,
+          "description": "Caller-side identifier for reconciliation. REQUIRED, max length 200 — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10."
         },
-        "customerEmail": { "type": "string", "format": "email" },
-        "billingAddress": { "$ref": "#/$defs/address" },
-        "shippingAddress": { "$ref": "#/$defs/address" },
-        "inventoryBehavior": {
-          "type": "string",
-          "enum": ["DECREMENT", "NONE"],
-          "default": "NONE",
-          "description": "UNVERIFIED. Whether creating the order draws down stock."
+        "fulfillments": {
+          "type": "array",
+          "description": "REQUIRED — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10. Must be present (not omitted); an empty array is valid and expected for a newly created order with no fulfillments yet. Item shape is UNVERIFIED — not needed for typical order creation, so [] is the safe default.",
+          "items": {}
         },
+        "grandTotal": { "$ref": "#/$defs/money" },
         "lineItems": {
           "type": "array",
           "minItems": 1,
+          "description": "REQUIRED, cannot be empty.",
           "items": { "$ref": "#/$defs/lineItemInput" }
         },
-        "shippingLines": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["method", "amount"],
-            "properties": {
-              "method": { "type": "string" },
-              "amount": { "$ref": "#/$defs/money" }
-            }
-          }
+        "priceTaxInterpretation": {
+          "type": "string",
+          "enum": ["EXCLUSIVE", "INCLUSIVE"],
+          "description": "REQUIRED, exactly \"EXCLUSIVE\" or \"INCLUSIVE\" — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10. No default: the caller must choose. (Previously modelled with a default of \"EXCLUSIVE\" implying optionality — that was wrong.)"
         },
+        "customerEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "NOT required — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10. (Previously modelled as required — that was wrong.)"
+        },
+        "billingAddress": { "$ref": "#/$defs/address" },
+        "shippingAddress": { "$ref": "#/$defs/address" },
         "discountLines": {
           "type": "array",
           "items": {
@@ -68,17 +77,38 @@
             }
           }
         },
-        "priceTaxInterpretation": {
+        "discountTotal": { "$ref": "#/$defs/money" },
+        "fulfilledOn": {
           "type": "string",
-          "enum": ["EXCLUSIVE", "INCLUSIVE"],
-          "default": "EXCLUSIVE"
+          "format": "date-time",
+          "description": "NOT required. ISO 8601. Distinct from fulfillments (the array) and fulfillmentStatus (the enum) — confirmed against Squarespace's official CreateOrderRequest contract, 2026-08-10."
+        },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "inventoryBehavior": {
+          "type": "string",
+          "enum": ["DECREMENT", "NONE"],
+          "default": "NONE",
+          "description": "NOT required. UNVERIFIED which value creating the order actually applies by default; whether creating the order draws down stock at all remains unconfirmed."
+        },
+        "shippingLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["method", "amount"],
+            "properties": {
+              "method": { "type": "string" },
+              "amount": { "$ref": "#/$defs/money" }
+            }
+          }
+        },
+        "shippingTotal": { "$ref": "#/$defs/money" },
+        "shopperFulfillmentNotificationBehavior": {
+          "type": "string",
+          "enum": ["SEND", "SKIP"],
+          "description": "NOT required. CONFIRMED enum, 2026-08-10: exactly \"SEND\" or \"SKIP\" — controls whether Squarespace emails the customer a fulfillment notification."
         },
         "subtotal": { "$ref": "#/$defs/money" },
-        "shippingTotal": { "$ref": "#/$defs/money" },
-        "discountTotal": { "$ref": "#/$defs/money" },
-        "taxTotal": { "$ref": "#/$defs/money" },
-        "grandTotal": { "$ref": "#/$defs/money" },
-        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" }
+        "taxTotal": { "$ref": "#/$defs/money" }
       }
     },
     "output": {
@@ -88,10 +118,14 @@
   },
   "examples": [
     {
+      "description": "Request shape matches Squarespace's official contract (reconciled 2026-08-10). nonSaleUnitPrice is omitted since its optionality is only inferred, not confirmed. fulfillments is present as [], per the confirmed requirement. The PHYSICAL_PRODUCT line item omits title — confirmed live, 2026-08-11, that a non-null title is rejected in that case. This example has not itself been submitted live — end-to-end success remains unverified.",
       "input": {
         "idempotencyKey": "9f8e7d6c-5b4a-4321-9876-543210fedcba",
         "channelName": "doo-connector",
+        "createdOn": "2026-08-10T00:00:00.000Z",
         "externalOrderReference": "DOO-2026-000117",
+        "fulfillments": [],
+        "priceTaxInterpretation": "EXCLUSIVE",
         "customerEmail": "buyer@example.com",
         "billingAddress": {
           "firstName": "Ada",
@@ -118,9 +152,8 @@
         "inventoryBehavior": "DECREMENT",
         "lineItems": [
           {
+            "lineItemType": "PHYSICAL_PRODUCT",
             "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
-            "sku": "SQ4985207",
-            "productName": "Test Product — Canvas Tote Bag",
             "quantity": 1,
             "unitPricePaid": { "currency": "USD", "value": "25.00" }
           }
@@ -131,7 +164,6 @@
             "amount": { "currency": "USD", "value": "5.00" }
           }
         ],
-        "priceTaxInterpretation": "EXCLUSIVE",
         "subtotal": { "currency": "USD", "value": "25.00" },
         "shippingTotal": { "currency": "USD", "value": "5.00" },
         "discountTotal": { "currency": "USD", "value": "0.00" },
@@ -192,6 +224,7 @@
     "money": {
       "title": "Money",
       "type": "object",
+      "description": "Squarespace's official type name for this shape is MonetaryAmount; kept as \"money\" here for consistency with the rest of this connector's schemas.",
       "required": ["currency", "value"],
       "properties": {
         "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
@@ -220,21 +253,39 @@
       }
     },
     "lineItemInput": {
-      "title": "CreateOrderLineItem",
+      "title": "CreateLineItemRequest",
       "type": "object",
-      "required": ["quantity", "unitPricePaid"],
-      "description": "Identify the item by variantId where possible; sku and productName are for non-catalog or historical items.",
+      "required": ["lineItemType", "variantId", "quantity", "unitPricePaid"],
+      "description": "Matches Squarespace's official CreateLineItemRequest contract exactly, reconciled 2026-08-10 against that authoritative source (not inferred from the response shape). sku does not exist on this request shape at all — it's response-only (see $defs.lineItem) — so unlike the top-level input above, there's nothing to structurally forbid here; it's simply not a defined property. title is NOT unconditionally required — see its own note and the `if`/`then` below: CONFIRMED live, 2026-08-11, forbidden (must be null/omitted) when lineItemType is PHYSICAL_PRODUCT; UNCONFIRMED for any other lineItemType value.",
+      "if": {
+        "properties": { "lineItemType": { "const": "PHYSICAL_PRODUCT" } }
+      },
+      "then": {
+        "properties": { "title": { "type": "null" } },
+        "description": "Structural enforcement of the title note below: when lineItemType is PHYSICAL_PRODUCT, title must be null if present at all."
+      },
       "properties": {
+        "lineItemType": {
+          "type": "string",
+          "description": "CONFIRMED, 2026-08-10: \"PHYSICAL_PRODUCT\" is correct for physical products — this connector's only tested case so far. Other product types (digital goods, services, gift cards, etc.) likely use different values; unconfirmed, and not needed until the connector handles those types."
+        },
         "variantId": { "type": "string", "format": "uuid" },
-        "sku": { "type": "string" },
-        "productName": { "type": "string" },
         "quantity": { "type": "integer", "minimum": 1 },
-        "unitPricePaid": { "$ref": "#/$defs/money" }
+        "unitPricePaid": { "$ref": "#/$defs/money" },
+        "title": {
+          "type": ["string", "null"],
+          "description": "Squarespace's official field name for the line item's display name on this request. NOT productName — that's a response-only field name (see $defs.lineItem). REQUIREMENT DEPENDS ON lineItemType: for \"PHYSICAL_PRODUCT\", CONFIRMED live, 2026-08-11 — must be null or omitted; Squarespace responds 400 INVALID_REQUEST_ERROR, \"lineItems.title must be null or omitted.\", if a non-null title is sent alongside PHYSICAL_PRODUCT (presumably because it's derived from the catalog product via variantId). For any OTHER lineItemType value, title's requirement (required / optional / forbidden) is UNCONFIRMED — no data yet, do not guess."
+        },
+        "nonSaleUnitPrice": {
+          "$ref": "#/$defs/money",
+          "description": "INFERRED, not confirmed — appears optional based on its descriptive purpose (presumably the item's regular price when unitPricePaid reflects a sale/discounted price). Not explicitly confirmed as optional vs required."
+        }
       }
     },
     "lineItem": {
       "title": "OrderLineItem",
       "type": "object",
+      "description": "Response shape — distinct from $defs.lineItemInput (the request shape). Unaffected by the 2026-08-10 request-side reconciliation.",
       "required": ["id", "quantity"],
       "properties": {
         "id": { "type": "string" },
@@ -248,7 +299,7 @@
     "order": {
       "title": "Order",
       "type": "object",
-      "description": "UNVERIFIED — mirrors fixtures/create-order-response.json, itself a placeholder.",
+      "description": "UNVERIFIED — mirrors fixtures/create-order-response.json, itself a placeholder. Unaffected by the 2026-08-10 request-side reconciliation.",
       "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
       "properties": {
         "id": { "type": "string" },

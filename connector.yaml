@@ -119,4 +119,5 @@ error_handling:
 risks:
   - none found, all four endpoint families reachable with current test key
   - Requires Squarespace Core plan or higher for Orders/Inventory/Contacts — currently satisfied by test account
-   
+  - list_products' `limit` parameter may not be honored on GET /products — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage:false. Inconclusive against this small a catalog (could be a minimum page size instead), but callers should not assume limit reliably caps page size until retested against a larger store.
+  - create_order returns 401 AUTHORIZATION_ERROR even with a fully schema-correct request (validated live against every structural check: required fields, sku exclusion, the conditional title rule, subtotal/lineItems consistency) AND Orders explicitly set to Read and Write on the API key. No order was created. This strongly suggests order creation is restricted to OAuth/registered Squarespace Extension apps and is not available via personal Developer API Keys at all, regardless of granted scopes. Confirmed platform-level access limitation, not a connector defect — the request-building logic is fully validated.

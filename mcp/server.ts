@@ -73,6 +73,21 @@ const TOOLS: Tool[] = [
       "otherwise this reads. The adjust path is UNVERIFIED against the live API.",
     inputSchema: loadInputSchema("get-or-adjust-inventory.schema.json"),
   },
+  {
+    name: "squarespace.create_order",
+    description:
+      "Create a new order. Request shape matches Squarespace's official documented contract " +
+      "(reconciled 2026-08-10), but END-TO-END SUCCESS IS STILL UNVERIFIED — no order has ever " +
+      "been successfully created. Irreversible and rate-limited to 100 calls/hour/site per " +
+      "connector.yaml. Requires channelName, createdOn, externalOrderReference, fulfillments " +
+      "(pass [] if none), grandTotal, priceTaxInterpretation (\"EXCLUSIVE\" or \"INCLUSIVE\"), " +
+      "and lineItems (each with lineItemType — \"PHYSICAL_PRODUCT\" for physical products — " +
+      "variantId, quantity, and unitPricePaid; no sku, and no title either when lineItemType " +
+      "is PHYSICAL_PRODUCT — confirmed live, 2026-08-11, that a non-null title is rejected in " +
+      "that case). customerEmail is optional. Idempotency-Key is auto-generated if " +
+      "idempotencyKey is omitted.",
+    inputSchema: loadInputSchema("create-order.schema.json"),
+  },
 ];
 
 /** Pulls `{ code, message, ... }`-shaped details out of any thrown value for error content. */
@@ -108,7 +123,8 @@ async function callTool(
   if (
     name === "squarespace.list_products" ||
     name === "squarespace.list_orders" ||
-    name === "squarespace.get_or_adjust_inventory"
+    name === "squarespace.get_or_adjust_inventory" ||
+    name === "squarespace.create_order"
   ) {
     const output = await execute({ actionId: name, input: args });
     return textResult(output);

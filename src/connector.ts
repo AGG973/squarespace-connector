@@ -5,6 +5,7 @@ import {
   getOrAdjustInventory,
   type GetOrAdjustInventoryInput,
 } from "./actions/get-or-adjust-inventory.ts";
+import { createOrder, type CreateOrderInput } from "./actions/create-order.ts";
 
 export type TestConnectionResult =
   | { success: true }
@@ -43,6 +44,7 @@ const IMPLEMENTED_ACTION_IDS: ReadonlySet<ActionId> = new Set([
   "squarespace.list_products",
   "squarespace.list_orders",
   "squarespace.get_or_adjust_inventory",
+  "squarespace.create_order",
 ]);
 
 export interface ActionListing {
@@ -79,9 +81,8 @@ export interface ExecuteRequest {
  * DooConnector `execute` entry point).
  *
  * @throws {ConnectorError} code "NOT_IMPLEMENTED" for one of connector.yaml's
- * 5 actions that isn't wired up yet (create_order, get_contact — landing
- * Week 2), or "UNKNOWN_ACTION" for an actionId connector.yaml doesn't
- * declare at all.
+ * 5 actions that isn't wired up yet (get_contact — landing Week 2), or
+ * "UNKNOWN_ACTION" for an actionId connector.yaml doesn't declare at all.
  */
 export async function execute({ actionId, input }: ExecuteRequest): Promise<unknown> {
   switch (actionId as ActionId) {
@@ -92,6 +93,7 @@ export async function execute({ actionId, input }: ExecuteRequest): Promise<unkn
     case "squarespace.get_or_adjust_inventory":
       return getOrAdjustInventory(input as GetOrAdjustInventoryInput | undefined);
     case "squarespace.create_order":
+      return createOrder(input as CreateOrderInput);
     case "squarespace.get_contact":
       throw new ConnectorError("NOT_IMPLEMENTED", `${actionId} is not yet implemented`);
     default:

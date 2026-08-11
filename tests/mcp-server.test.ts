@@ -27,7 +27,7 @@ describe("mcp/server tools/list", () => {
     client = undefined;
   });
 
-  it("returns exactly the 4 expected tools with valid-looking schemas", async () => {
+  it("returns exactly the 5 expected tools with valid-looking schemas", async () => {
     client = await connectClient();
 
     const { tools } = await client.listTools();
@@ -37,6 +37,7 @@ describe("mcp/server tools/list", () => {
       "squarespace.list_products",
       "squarespace.list_orders",
       "squarespace.get_or_adjust_inventory",
+      "squarespace.create_order",
     ]);
 
     for (const tool of tools) {
@@ -62,5 +63,22 @@ describe("mcp/server tools/list", () => {
     // loadInputSchema() ran without losing the oneOf/$defs.
     expect(inventory?.inputSchema.oneOf).toBeInstanceOf(Array);
     expect(inventory?.inputSchema.$defs).toHaveProperty("adjustInventoryInput");
+
+    const createOrder = tools.find((tool) => tool.name === "squarespace.create_order");
+    expect(createOrder?.inputSchema.required).toEqual(
+      expect.arrayContaining([
+        "channelName",
+        "createdOn",
+        "externalOrderReference",
+        "fulfillments",
+        "grandTotal",
+        "lineItems",
+        "priceTaxInterpretation",
+      ]),
+    );
+    // customerEmail was previously (incorrectly) required — reconciled against
+    // Squarespace's official contract, 2026-08-10.
+    expect(createOrder?.inputSchema.required).not.toContain("customerEmail");
+    expect(createOrder?.inputSchema.required).not.toContain("idempotencyKey");
   });
 });

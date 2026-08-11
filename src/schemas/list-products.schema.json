@@ -20,7 +20,7 @@
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "description": "Page size. The API's maximum accepted value has not been verified against the live API."
+          "description": "Whether this parameter is honored at all is unconfirmed — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage: false. Inconclusive: could mean a minimum page size larger than this store's catalog, or that the parameter isn't honored on this endpoint, or a combination. Cannot be resolved without a larger catalog to test against."
         }
       },
       "dependentSchemas": {
