@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "squarespace-connector",
   "version": "1.0.0",
   "description": "",
@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "check": "node --env-file-if-exists=.env src/check-connection.ts",
     "check:actions": "node --env-file-if-exists=.env src/check-actions.ts",
-    "mcp": "node --env-file-if-exists=.env mcp/server.ts"
+    "mcp": "node --env-file-if-exists=.env mcp/server.ts",
+    "generate:openapi": "node src/generate-openapi.ts",
+    "validate:openapi": "redocly lint openapi.yaml"
   },
   "repository": {
     "type": "git",
@@ -29,6 +31,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2"
+    "@redocly/cli": "^2.46.1",
+    "@types/node": "^26.1.2",
+    "yaml": "^2.9.0"
   }
 }
