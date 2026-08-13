@@ -117,8 +117,11 @@ error_handling:
     retryable: "true for 429 and 5xx responses, false otherwise"
 
 risks:
-  - none found, all four endpoint families reachable with current test key
   - Requires Squarespace Core plan or higher for Orders/Inventory/Contacts — currently satisfied by test account
   - list_products' `limit` parameter may not be honored on GET /products — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage:false. Inconclusive against this small a catalog (could be a minimum page size instead), but callers should not assume limit reliably caps page size until retested against a larger store.
+  - list_orders' real shape for a populated order object is unverified — the store has zero real orders (same root cause as the create_order 401 limitation below), so only the empty-result case has been confirmed live.
+  - list_orders' cursor-vs-modifiedAfter/modifiedBefore exclusivity rule is enforced in code based on documentation, but has never actually been triggered against the live API — untested, not disproven.
+
+known_limitations:
   - create_order returns 401 AUTHORIZATION_ERROR even with a fully schema-correct request (validated live against every structural check: required fields, sku exclusion, the conditional title rule, subtotal/lineItems consistency) AND Orders explicitly set to Read and Write on the API key. No order was created. This strongly suggests order creation is restricted to OAuth/registered Squarespace Extension apps and is not available via personal Developer API Keys at all, regardless of granted scopes. Confirmed platform-level access limitation, not a connector defect — the request-building logic is fully validated.
   - get_contact's response shape was initially modeled from a placeholder fixture and was substantially wrong. CONFIRMED live, 2026-08-11, against one real contact: the actual response is wrapped in a top-level `contact` key (not flat), uses `primaryEmail.{email, acceptsMarketing}` instead of flat `email`/`transactionalEmailStatus`, and has no `phoneNumbers`/`notes`/`lists`/`tags`/`lastModifiedOn` fields (schema/action/tests updated to match). Because only one real record has been observed, it's unconfirmed whether those absent fields ever appear on contacts that actually have notes, tags, or list memberships set.
