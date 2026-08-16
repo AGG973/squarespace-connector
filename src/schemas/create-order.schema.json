@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/create-order.schema.json",
   "title": "squarespace.create_order",
-  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: the REQUEST shape below now matches Squarespace's official documented CreateOrderRequest/CreateLineItemRequest contract, reconciled 2026-08-10 directly against that authoritative source — superseding the shape previously inferred from 4 live 400 rejections and from the read-side/response shape. Field-level confidence varies: lineItemType \"PHYSICAL_PRODUCT\" is confirmed correct for physical products; for that lineItemType, title is CONFIRMED live, 2026-08-11, to be forbidden (must be null or omitted — \"lineItems.title must be null or omitted\" when lineItemType is PHYSICAL_PRODUCT), correcting the earlier assumption that title was unconditionally required — title's requirement for any OTHER lineItemType value remains UNCONFIRMED, no data yet; shopperFulfillmentNotificationBehavior is a confirmed enum, exactly \"SEND\" or \"SKIP\"; nonSaleUnitPrice's optionality is inferred from its descriptive purpose, not explicitly confirmed; fulfillments' item shape remains unconfirmed (an empty array is the safe default). END-TO-END SUCCESS IS STILL UNVERIFIED — no order has ever been successfully created against the live API. The output side is unchanged by this reconciliation and still mirrors the placeholder in fixtures/create-order-response.json.",
+  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: END-TO-END SUCCESS IS CONFIRMED — a real order was successfully created live, 2026-08-16, via a personal Developer API Key. That same live call disproved the earlier belief that order creation was restricted to OAuth/registered Extension apps: the actual blocker was that `subtotal`, previously modeled as optional, is functionally REQUIRED — Squarespace returns 400 INVALID_REQUEST_ERROR.unknown (\"The sum of lineItems.unitPricePaid.value must equal subtotal.value\") when it's omitted, and the order only succeeds once subtotal is present and equal to the sum of lineItems[].unitPricePaid.value. The REQUEST shape otherwise matches Squarespace's official documented CreateOrderRequest/CreateLineItemRequest contract, reconciled 2026-08-10 directly against that authoritative source. Field-level confidence varies: lineItemType \"PHYSICAL_PRODUCT\" is confirmed correct for physical products; for that lineItemType, title is CONFIRMED live, 2026-08-11, to be forbidden (must be null or omitted — \"lineItems.title must be null or omitted\" when lineItemType is PHYSICAL_PRODUCT), correcting the earlier assumption that title was unconditionally required — title's requirement for any OTHER lineItemType value remains UNCONFIRMED, no data yet; shopperFulfillmentNotificationBehavior is a confirmed enum, exactly \"SEND\" or \"SKIP\"; nonSaleUnitPrice's optionality is inferred from its descriptive purpose, not explicitly confirmed; fulfillments' item shape remains unconfirmed (an empty array is the safe default). The output side now reflects the real captured response from the 2026-08-16 order — see fixtures/create-order-response.json.",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
@@ -17,7 +17,8 @@
         "fulfillments",
         "grandTotal",
         "lineItems",
-        "priceTaxInterpretation"
+        "priceTaxInterpretation",
+        "subtotal"
       ],
       "additionalProperties": false,
       "properties": {
@@ -107,7 +108,10 @@
           "enum": ["SEND", "SKIP"],
           "description": "NOT required. CONFIRMED enum, 2026-08-10: exactly \"SEND\" or \"SKIP\" — controls whether Squarespace emails the customer a fulfillment notification."
         },
-        "subtotal": { "$ref": "#/$defs/money" },
+        "subtotal": {
+          "$ref": "#/$defs/money",
+          "description": "REQUIRED — CONFIRMED live, 2026-08-16. Previously modeled as optional; Squarespace actually returns 400 INVALID_REQUEST_ERROR.unknown, \"The sum of lineItems.unitPricePaid.value must equal subtotal.value,\" when it's omitted. Must be present and equal to the sum of lineItems[].unitPricePaid.value."
+        },
         "taxTotal": { "$ref": "#/$defs/money" }
       }
     },
@@ -118,7 +122,7 @@
   },
   "examples": [
     {
-      "description": "Request shape matches Squarespace's official contract (reconciled 2026-08-10). nonSaleUnitPrice is omitted since its optionality is only inferred, not confirmed. fulfillments is present as [], per the confirmed requirement. The PHYSICAL_PRODUCT line item omits title — confirmed live, 2026-08-11, that a non-null title is rejected in that case. This example has not itself been submitted live — end-to-end success remains unverified.",
+      "description": "Request shape matches Squarespace's official contract (reconciled 2026-08-10). nonSaleUnitPrice is omitted since its optionality is only inferred, not confirmed. fulfillments is present as [], per the confirmed requirement. The PHYSICAL_PRODUCT line item omits title — confirmed live, 2026-08-11, that a non-null title is rejected in that case. This exact example (with this exact address/discount/shipping/tax combination) has not itself been submitted live, but end-to-end success is confirmed in general — see fixtures/create-order-response.json for a real captured response, and note that `subtotal` is now required, not optional as this example's own presence of it might otherwise suggest.",
       "input": {
         "idempotencyKey": "9f8e7d6c-5b4a-4321-9876-543210fedcba",
         "channelName": "doo-connector",
@@ -285,21 +289,40 @@
     "lineItem": {
       "title": "OrderLineItem",
       "type": "object",
-      "description": "Response shape — distinct from $defs.lineItemInput (the request shape). Unaffected by the 2026-08-10 request-side reconciliation.",
+      "description": "Response shape — distinct from $defs.lineItemInput (the request shape). CONFIRMED live, 2026-08-16, against a real order's response.",
       "required": ["id", "quantity"],
       "properties": {
         "id": { "type": "string" },
         "variantId": { "type": ["string", "null"], "format": "uuid" },
         "sku": { "type": ["string", "null"] },
+        "productId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
         "productName": { "type": "string" },
         "quantity": { "type": "integer", "minimum": 1 },
-        "unitPricePaid": { "$ref": "#/$defs/money" }
+        "unitPricePaid": { "$ref": "#/$defs/money" },
+        "lineItemType": { "type": "string", "description": "CONFIRMED live, 2026-08-16 — echoes the request's lineItemType, e.g. \"PHYSICAL_PRODUCT\"." },
+        "weight": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "width": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "length": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "height": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "variantOptions": {
+          "type": "array",
+          "description": "CONFIRMED live, 2026-08-16.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "optionName": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        },
+        "customizations": { "type": ["array", "null"], "description": "CONFIRMED live, 2026-08-16 — null when the line item has none." },
+        "imageUrl": { "type": "string", "description": "CONFIRMED live, 2026-08-16." }
       }
     },
     "order": {
       "title": "Order",
       "type": "object",
-      "description": "UNVERIFIED — mirrors fixtures/create-order-response.json, itself a placeholder. Unaffected by the 2026-08-10 request-side reconciliation.",
+      "description": "CONFIRMED live, 2026-08-16, against a real order successfully created through this connector — see fixtures/create-order-response.json.",
       "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
       "properties": {
         "id": { "type": "string" },
@@ -307,11 +330,26 @@
         "createdOn": { "type": "string", "format": "date-time" },
         "modifiedOn": { "type": "string", "format": "date-time" },
         "testmode": { "type": "boolean" },
+        "channel": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"external\"." },
+        "channelName": { "type": "string" },
+        "externalOrderReference": { "type": "string" },
         "customerEmail": { "type": "string", "format": "email" },
+        "customerId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
         "billingAddress": { "$ref": "#/$defs/address" },
         "shippingAddress": { "$ref": "#/$defs/address" },
         "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "fulfilledOn": { "type": ["string", "null"], "format": "date-time", "description": "CONFIRMED live, 2026-08-16 — null when unfulfilled." },
+        "fulfillments": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array on a newly created, unfulfilled order." },
         "lineItems": { "type": "array", "items": { "$ref": "#/$defs/lineItem" } },
+        "internalNotes": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "shippingLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape matches request-side $defs not yet cross-checked against a populated case." },
+        "discountLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "formSubmission": { "type": ["object", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed; populated shape unconfirmed." },
+        "priceTaxInterpretation": { "type": "string", "enum": ["EXCLUSIVE", "INCLUSIVE"] },
+        "paymentState": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"PAID\". Other enum members unconfirmed." },
+        "shippingOptionName": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
+        "shippingOptionServiceType": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
+        "idempotencyKey": { "type": "string", "format": "uuid", "description": "CONFIRMED live, 2026-08-16 — Squarespace echoes the Idempotency-Key back in the response body itself, distinct from this connector's own merge of it into the result." },
         "subtotal": { "$ref": "#/$defs/money" },
         "shippingTotal": { "$ref": "#/$defs/money" },
         "discountTotal": { "$ref": "#/$defs/money" },

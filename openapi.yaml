@@ -1432,7 +1432,7 @@ components:
     CreateOrderLineItem:
       title: OrderLineItem
       type: object
-      description: Response shape — distinct from $defs.lineItemInput (the request shape). Unaffected by the 2026-08-10 request-side reconciliation.
+      description: Response shape — distinct from $defs.lineItemInput (the request shape). CONFIRMED live, 2026-08-16, against a real order's response.
       required:
         - id
         - quantity
@@ -1448,6 +1448,9 @@ components:
           type:
             - string
             - "null"
+        productId:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
         productName:
           type: string
         quantity:
@@ -1455,10 +1458,43 @@ components:
           minimum: 1
         unitPricePaid:
           $ref: "#/components/schemas/CreateOrderMoney"
+        lineItemType:
+          type: string
+          description: CONFIRMED live, 2026-08-16 — echoes the request's lineItemType, e.g. "PHYSICAL_PRODUCT".
+        weight:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        width:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        length:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        height:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        variantOptions:
+          type: array
+          description: CONFIRMED live, 2026-08-16.
+          items:
+            type: object
+            properties:
+              optionName:
+                type: string
+              value:
+                type: string
+        customizations:
+          type:
+            - array
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null when the line item has none.
+        imageUrl:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
     CreateOrderOrder:
       title: Order
       type: object
-      description: UNVERIFIED — mirrors fixtures/create-order-response.json, itself a placeholder. Unaffected by the 2026-08-10 request-side reconciliation.
+      description: CONFIRMED live, 2026-08-16, against a real order successfully created through this connector — see fixtures/create-order-response.json.
       required:
         - id
         - orderNumber
@@ -1478,19 +1514,74 @@ components:
           format: date-time
         testmode:
           type: boolean
+        channel:
+          type: string
+          description: CONFIRMED live, 2026-08-16, e.g. "external".
+        channelName:
+          type: string
+        externalOrderReference:
+          type: string
         customerEmail:
           type: string
           format: email
+        customerId:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
         billingAddress:
           $ref: "#/components/schemas/CreateOrderAddress"
         shippingAddress:
           $ref: "#/components/schemas/CreateOrderAddress"
         fulfillmentStatus:
           $ref: "#/components/schemas/CreateOrderFulfillmentStatus"
+        fulfilledOn:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: CONFIRMED live, 2026-08-16 — null when unfulfilled.
+        fulfillments:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array on a newly created, unfulfilled order.
         lineItems:
           type: array
           items:
             $ref: "#/components/schemas/CreateOrderLineItem"
+        internalNotes:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised.
+        shippingLines:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape matches request-side $defs not yet cross-checked against a populated case.
+        discountLines:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised.
+        formSubmission:
+          type:
+            - object
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed; populated shape unconfirmed.
+        priceTaxInterpretation:
+          type: string
+          enum:
+            - EXCLUSIVE
+            - INCLUSIVE
+        paymentState:
+          type: string
+          description: CONFIRMED live, 2026-08-16, e.g. "PAID". Other enum members unconfirmed.
+        shippingOptionName:
+          type:
+            - string
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed.
+        shippingOptionServiceType:
+          type:
+            - string
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed.
+        idempotencyKey:
+          type: string
+          format: uuid
+          description: CONFIRMED live, 2026-08-16 — Squarespace echoes the Idempotency-Key back in the response body itself, distinct from this connector's own merge of it into the result.
         subtotal:
           $ref: "#/components/schemas/CreateOrderMoney"
         shippingTotal:
@@ -1515,6 +1606,7 @@ components:
         - grandTotal
         - lineItems
         - priceTaxInterpretation
+        - subtotal
       additionalProperties: false
       properties:
         idempotencyKey:
@@ -1610,6 +1702,7 @@ components:
           description: 'NOT required. CONFIRMED enum, 2026-08-10: exactly "SEND" or "SKIP" — controls whether Squarespace emails the customer a fulfillment notification.'
         subtotal:
           $ref: "#/components/schemas/CreateOrderMoney"
+          description: REQUIRED — CONFIRMED live, 2026-08-16. Previously modeled as optional; Squarespace actually returns 400 INVALID_REQUEST_ERROR.unknown, "The sum of lineItems.unitPricePaid.value must equal subtotal.value," when it's omitted. Must be present and equal to the sum of lineItems[].unitPricePaid.value.
         taxTotal:
           $ref: "#/components/schemas/CreateOrderMoney"
     CreateOrderOutput:

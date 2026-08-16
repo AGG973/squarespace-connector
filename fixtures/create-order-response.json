@@ -1,48 +1,78 @@
 {
-  "_comment" : "PLACEHOLDER — not yet verified against live API, confirm in Week 2 when create_order is actually implemented and tested.",
-  "id" : "00000000-0000-0000-0000-000000000000",
-  "orderNumber" : "1",
-  "createdOn" : "2026-01-01T00:00:00.000Z",
-  "modifiedOn" : "2026-01-01T00:00:00.000Z",
-  "testmode" : true,
-  "customerEmail" : "placeholder@example.com",
-  "billingAddress" : {
-    "firstName" : "Placeholder",
-    "lastName" : "Customer",
-    "address1" : "123 Example St",
-    "address2" : null,
-    "city" : "Brooklyn",
-    "state" : "NY",
-    "countryCode" : "US",
-    "postalCode" : "11201",
-    "phone" : "555-0100"
-  },
-  "shippingAddress" : {
-    "firstName" : "Placeholder",
-    "lastName" : "Customer",
-    "address1" : "123 Example St",
-    "address2" : null,
-    "city" : "Brooklyn",
-    "state" : "NY",
-    "countryCode" : "US",
-    "postalCode" : "11201",
-    "phone" : "555-0100"
-  },
-  "fulfillmentStatus" : "PENDING",
-  "lineItems" : [
+  "_comment": "CONFIRMED live, 2026-08-16 — real captured response from a successfully created order (id 6a81716f0589b404e7529648, orderNumber 1). customerEmail below has been replaced with a placeholder; every other field is the real response verbatim.",
+  "id": "6a81716f0589b404e7529648",
+  "orderNumber": "1",
+  "createdOn": "2026-08-16T08:14:10Z",
+  "modifiedOn": "2026-08-16T08:14:39.705Z",
+  "channel": "external",
+  "testmode": false,
+  "customerEmail": "buyer@example.com",
+  "customerId": "6a7afd9c3a715540f23e0a54",
+  "billingAddress": null,
+  "shippingAddress": null,
+  "fulfillmentStatus": "PENDING",
+  "lineItems": [
     {
-      "id" : "00000000-0000-0000-0000-000000000001",
-      "variantId" : "303079a3-a085-45aa-8814-ce63e140c2b4",
-      "sku" : "SQ4985207",
-      "productName" : "Test Product — Canvas Tote Bag",
-      "quantity" : 1,
-      "unitPricePaid" : { "currency" : "USD", "value" : "25.00" }
+      "id": "6a81716fc8fe4c0001305355",
+      "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+      "sku": "SQ4985207",
+      "weight": 0,
+      "width": 0,
+      "length": 0,
+      "height": 0,
+      "productId": "6a72f2378d7a8a3a29161789",
+      "productName": "Test Product — Canvas Tote Bag",
+      "quantity": 1,
+      "unitPricePaid": {
+        "currency": "USD",
+        "value": "20.00"
+      },
+      "variantOptions": [
+        {
+          "optionName": "Size",
+          "value": "Small"
+        }
+      ],
+      "customizations": null,
+      "imageUrl": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+      "lineItemType": "PHYSICAL_PRODUCT"
     }
   ],
-  "subtotal" : { "currency" : "USD", "value" : "25.00" },
-  "shippingTotal" : { "currency" : "USD", "value" : "5.00" },
-  "discountTotal" : { "currency" : "USD", "value" : "0.00" },
-  "taxTotal" : { "currency" : "USD", "value" : "2.22" },
-  "refundedTotal" : { "currency" : "USD", "value" : "0.00" },
-  "grandTotal" : { "currency" : "USD", "value" : "32.22" }
+  "internalNotes": [],
+  "shippingLines": [],
+  "discountLines": [],
+  "formSubmission": null,
+  "fulfillments": [],
+  "subtotal": {
+    "currency": "USD",
+    "value": "20.00"
+  },
+  "shippingTotal": {
+    "currency": "USD",
+    "value": "0.00"
+  },
+  "discountTotal": {
+    "currency": "USD",
+    "value": "0.00"
+  },
+  "taxTotal": {
+    "currency": "USD",
+    "value": "0.00"
+  },
+  "refundedTotal": {
+    "currency": "USD",
+    "value": "0.00"
+  },
+  "grandTotal": {
+    "currency": "USD",
+    "value": "20.00"
+  },
+  "channelName": "DOO Connector Test",
+  "externalOrderReference": "TEST-CONNECTOR-002",
+  "fulfilledOn": null,
+  "priceTaxInterpretation": "EXCLUSIVE",
+  "paymentState": "PAID",
+  "shippingOptionName": null,
+  "shippingOptionServiceType": null,
+  "idempotencyKey": "53cbf878-2dcc-4b5d-930f-ab5cf8b3f65d"
 }

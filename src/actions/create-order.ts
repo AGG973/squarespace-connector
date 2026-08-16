@@ -114,7 +114,13 @@ export interface CreateOrderInput {
   shippingTotal?: Money;
   /** CONFIRMED enum, 2026-08-10: controls whether Squarespace emails the customer a fulfillment notification. */
   shopperFulfillmentNotificationBehavior?: "SEND" | "SKIP";
-  subtotal?: Money;
+  /**
+   * REQUIRED — CONFIRMED live, 2026-08-16. Previously modeled as optional;
+   * Squarespace actually returns 400 INVALID_REQUEST_ERROR.unknown, "The sum
+   * of lineItems.unitPricePaid.value must equal subtotal.value," when this
+   * is omitted. Must equal the sum of lineItems[].unitPricePaid.value.
+   */
+  subtotal: Money;
   taxTotal?: Money;
 }
 
@@ -124,11 +130,13 @@ export interface CreateOrderResult extends Record<string, unknown> {
 }
 
 /**
- * Raw order shape from Squarespace. UNVERIFIED — modelled on
- * fixtures/create-order-response.json, itself a placeholder; no order has
- * ever been created against the live API. Kept as an open record rather
- * than the schema's precise field list so an unexpected real shape still
- * passes through instead of being silently dropped.
+ * Raw order shape from Squarespace. CONFIRMED live, 2026-08-16, against a
+ * real order created through this connector — see
+ * fixtures/create-order-response.json for the captured response and
+ * src/schemas/create-order.schema.json's $defs.order for the reconciled
+ * field list. Kept as an open record rather than the schema's precise field
+ * list so an unexpected real shape still passes through instead of being
+ * silently dropped.
  */
 type CreateOrderResponse = Record<string, unknown>;
 
@@ -147,12 +155,18 @@ function isMoney(value: unknown): value is Money {
  * CreateLineItemRequest contract (reconciled 2026-08-10): channelName,
  * createdOn, externalOrderReference, fulfillments (array, may be empty),
  * grandTotal, a non-empty lineItems array (each with lineItemType,
- * variantId, quantity, unitPricePaid — no sku), and priceTaxInterpretation.
- * title is NOT unconditionally required: confirmed live, 2026-08-11, that
- * it must be omitted/null when lineItemType is "PHYSICAL_PRODUCT" — only
- * that one rule is enforced below, since title's requirement for any other
- * lineItemType is unconfirmed. This is the highest-risk action
- * (irreversible, rate-limited), so catching bad input locally beats
+ * variantId, quantity, unitPricePaid — no sku), priceTaxInterpretation, and
+ * subtotal. title is NOT unconditionally required: confirmed live,
+ * 2026-08-11, that it must be omitted/null when lineItemType is
+ * "PHYSICAL_PRODUCT" — only that one rule is enforced below, since title's
+ * requirement for any other lineItemType is unconfirmed. subtotal was
+ * previously modeled as optional; CONFIRMED live, 2026-08-16, that
+ * Squarespace rejects the request with 400
+ * INVALID_REQUEST_ERROR.unknown ("The sum of lineItems.unitPricePaid.value
+ * must equal subtotal.value") when it's omitted, so it's enforced as
+ * required here too (the value-equality check itself is left to
+ * Squarespace, not re-implemented client-side). This is the highest-risk
+ * action (irreversible, rate-limited), so catching bad input locally beats
  * round-tripping to find out from Squarespace's 400.
  */
 function assertValidInput(input: Partial<CreateOrderInput> | null | undefined): void {
@@ -183,6 +197,14 @@ function assertValidInput(input: Partial<CreateOrderInput> | null | undefined): 
 
   if (!isMoney(input.grandTotal)) {
     errors.push("grandTotal must be a { currency, value } money object.");
+  }
+
+  if (!isMoney(input.subtotal)) {
+    errors.push(
+      "subtotal is required and must be a { currency, value } money object equal to the sum of " +
+        "lineItems[].unitPricePaid.value (confirmed live, 2026-08-16 — Squarespace rejects the " +
+        "request with 400 INVALID_REQUEST_ERROR.unknown when it's omitted).",
+    );
   }
 
   if (!Array.isArray(input.lineItems) || input.lineItems.length === 0) {
@@ -239,6 +261,7 @@ function buildRequestBody(input: CreateOrderInput): Record<string, unknown> {
     grandTotal: input.grandTotal,
     lineItems: input.lineItems,
     priceTaxInterpretation: input.priceTaxInterpretation,
+    subtotal: input.subtotal,
   };
 
   if (input.customerEmail !== undefined) body.customerEmail = input.customerEmail;
@@ -254,7 +277,6 @@ function buildRequestBody(input: CreateOrderInput): Record<string, unknown> {
   if (input.shopperFulfillmentNotificationBehavior !== undefined) {
     body.shopperFulfillmentNotificationBehavior = input.shopperFulfillmentNotificationBehavior;
   }
-  if (input.subtotal !== undefined) body.subtotal = input.subtotal;
   if (input.taxTotal !== undefined) body.taxTotal = input.taxTotal;
 
   return body;
@@ -270,14 +292,18 @@ function buildRequestBody(input: CreateOrderInput): Record<string, unknown> {
  * response shape. One correction since then, from a real submission
  * attempt: lineItems[].title is NOT unconditionally required — confirmed
  * live, 2026-08-11, that it must be omitted/null when lineItemType is
- * "PHYSICAL_PRODUCT"; unconfirmed for any other lineItemType. Two residual
- * uncertainties: lineItems[].nonSaleUnitPrice's optionality is inferred,
- * not explicitly confirmed, and fulfillments' item shape remains
- * unconfirmed ([] is the safe default).
+ * "PHYSICAL_PRODUCT"; unconfirmed for any other lineItemType. A second
+ * correction, from a real submission attempt on 2026-08-16: subtotal is NOT
+ * optional despite being modeled that way — Squarespace rejects the request
+ * with 400 INVALID_REQUEST_ERROR.unknown when it's omitted, so it's now
+ * required (see assertValidInput). Two residual uncertainties:
+ * lineItems[].nonSaleUnitPrice's optionality is inferred, not explicitly
+ * confirmed, and fulfillments' item shape remains unconfirmed ([] is the
+ * safe default).
  *
- * END-TO-END SUCCESS IS STILL UNVERIFIED — no order has ever been
- * successfully created through this connector; the output/response shape
- * is unchanged by this reconciliation and still mirrors the placeholder in
+ * END-TO-END SUCCESS IS CONFIRMED — a real order was successfully created
+ * through this connector, 2026-08-16; the output/response shape now
+ * reflects that real captured response — see
  * fixtures/create-order-response.json.
  *
  * Per connector.yaml this action is irreversible, requires approval, and is

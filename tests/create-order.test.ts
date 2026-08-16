@@ -25,7 +25,12 @@ const validLineItem = {
   unitPricePaid: { currency: "USD", value: "20.00" },
 };
 
-/** Minimal input satisfying every field src/schemas/create-order.schema.json currently requires. */
+/**
+ * Minimal input satisfying every field src/schemas/create-order.schema.json
+ * currently requires. subtotal is REQUIRED — confirmed live, 2026-08-16,
+ * that Squarespace rejects the request without it (previously modeled as
+ * optional).
+ */
 const validInput = {
   channelName: "doo-connector",
   createdOn: "2026-08-10T00:00:00.000Z",
@@ -34,9 +39,10 @@ const validInput = {
   grandTotal: { currency: "USD", value: "20.00" },
   lineItems: [validLineItem],
   priceTaxInterpretation: "EXCLUSIVE" as const,
+  subtotal: { currency: "USD", value: "20.00" },
 };
 
-/** Trimmed from fixtures/create-order-response.json — itself a placeholder; create_order is unverified live. */
+/** Trimmed from fixtures/create-order-response.json — the real captured response from a successful live create_order call, 2026-08-16. */
 const orderResponse = {
   id: "00000000-0000-0000-0000-000000000000",
   orderNumber: "1",
@@ -107,7 +113,7 @@ describe("createOrder — Idempotency-Key handling (same pattern as get-or-adjus
   });
 });
 
-describe("createOrder — client-side validation matches Squarespace's official contract (2026-08-10, title rule 2026-08-11)", () => {
+describe("createOrder — client-side validation matches Squarespace's official contract (2026-08-10, title rule 2026-08-11, subtotal rule 2026-08-16)", () => {
   it("rejects entirely missing input", async () => {
     await expect(createOrder(undefined as never)).rejects.toThrow(/input is required/i);
     expect(mockRequest).not.toHaveBeenCalled();
@@ -143,6 +149,12 @@ describe("createOrder — client-side validation matches Squarespace's official 
   it("rejects a missing grandTotal", async () => {
     const { grandTotal: _omit, ...rest } = validInput;
     await expect(createOrder(rest as never)).rejects.toThrow(/grandTotal/i);
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing subtotal (confirmed live, 2026-08-16 — previously modeled as optional)", async () => {
+    const { subtotal: _omit, ...rest } = validInput;
+    await expect(createOrder(rest as never)).rejects.toThrow(/subtotal/i);
     expect(mockRequest).not.toHaveBeenCalled();
   });
 
@@ -258,6 +270,7 @@ describe("createOrder — successful response", () => {
           grandTotal: validInput.grandTotal,
           lineItems: validInput.lineItems,
           priceTaxInterpretation: validInput.priceTaxInterpretation,
+          subtotal: validInput.subtotal,
         },
       }),
     );
