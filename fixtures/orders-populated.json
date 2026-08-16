@@ -1,0 +1,82 @@
+{
+  "_comment": "CONFIRMED live, 2026-08-16 — real captured response from GET /orders (top-level key is `result`, per the raw Squarespace shape) against a store containing one real order (id 6a81716f0589b404e7529648, orderNumber 1, created via create_order that same day). This populated order exactly matches fixtures/create-order-response.json's shape. customerEmail below has been replaced with a placeholder; every other field is the real response verbatim. See fixtures/orders.json for the previously-confirmed empty-result case.",
+  "result": [
+    {
+      "id": "6a81716f0589b404e7529648",
+      "orderNumber": "1",
+      "createdOn": "2026-08-16T08:14:10Z",
+      "modifiedOn": "2026-08-16T08:14:39.705Z",
+      "channel": "external",
+      "testmode": false,
+      "customerEmail": "buyer@example.com",
+      "customerId": "6a7afd9c3a715540f23e0a54",
+      "billingAddress": null,
+      "shippingAddress": null,
+      "fulfillmentStatus": "PENDING",
+      "lineItems": [
+        {
+          "id": "6a81716fc8fe4c0001305355",
+          "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+          "sku": "SQ4985207",
+          "weight": 0,
+          "width": 0,
+          "length": 0,
+          "height": 0,
+          "productId": "6a72f2378d7a8a3a29161789",
+          "productName": "Test Product — Canvas Tote Bag",
+          "quantity": 1,
+          "unitPricePaid": {
+            "currency": "USD",
+            "value": "20.00"
+          },
+          "variantOptions": [
+            {
+              "optionName": "Size",
+              "value": "Small"
+            }
+          ],
+          "customizations": null,
+          "imageUrl": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+          "lineItemType": "PHYSICAL_PRODUCT"
+        }
+      ],
+      "internalNotes": [],
+      "shippingLines": [],
+      "discountLines": [],
+      "formSubmission": null,
+      "fulfillments": [],
+      "subtotal": {
+        "currency": "USD",
+        "value": "20.00"
+      },
+      "shippingTotal": {
+        "currency": "USD",
+        "value": "0.00"
+      },
+      "discountTotal": {
+        "currency": "USD",
+        "value": "0.00"
+      },
+      "taxTotal": {
+        "currency": "USD",
+        "value": "0.00"
+      },
+      "refundedTotal": {
+        "currency": "USD",
+        "value": "0.00"
+      },
+      "grandTotal": {
+        "currency": "USD",
+        "value": "20.00"
+      },
+      "channelName": "DOO Connector Test",
+      "externalOrderReference": "TEST-CONNECTOR-002",
+      "fulfilledOn": null,
+      "priceTaxInterpretation": "EXCLUSIVE",
+      "paymentState": "PAID",
+      "shippingOptionName": null,
+      "shippingOptionServiceType": null
+    }
+  ],
+  "pagination": { "nextPageUrl": null, "nextPageCursor": null, "hasNextPage": false }
+}

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/list-orders.schema.json",
   "title": "squarespace.list_orders",
-  "description": "Input/output contract for listing orders. GET /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: the response envelope is verified against fixtures/orders.json — note the top-level array key is `result`, NOT `orders`, unlike list_products (`products`) and get_contact's list form (`contacts`). The per-order fields are NOT verified: the store had zero orders when the fixture was captured, so the Order shape below is modelled and kept consistent with fixtures/create-order-response.json.",
+  "description": "Input/output contract for listing orders. GET /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). VERIFICATION STATUS: the response envelope is verified against fixtures/orders.json — note the top-level array key is `result`, NOT `orders`, unlike list_products (`products`) and get_contact's list form (`contacts`). The per-order fields are now CONFIRMED live, 2026-08-16, against a real populated order — the store had zero orders when the envelope was first verified, but list_orders has since been re-run against the real order created via create_order that same day. The populated response exactly matches create_order's captured response shape (same fields, same nesting, same line-item shape) — see fixtures/orders.json and fixtures/create-order-response.json. One confirmed difference from create_order's output: list_orders' per-order objects do NOT include an `idempotencyKey` field — that field is specific to the create_order response.",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
@@ -176,20 +176,40 @@
     "lineItem": {
       "title": "OrderLineItem",
       "type": "object",
+      "description": "CONFIRMED live, 2026-08-16, against a real order's response via list_orders — matches create_order's captured line-item shape exactly.",
       "required": ["id", "quantity"],
       "properties": {
         "id": { "type": "string" },
         "variantId": { "type": ["string", "null"], "format": "uuid" },
         "sku": { "type": ["string", "null"] },
+        "productId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
         "productName": { "type": "string" },
         "quantity": { "type": "integer", "minimum": 1 },
-        "unitPricePaid": { "$ref": "#/$defs/money" }
+        "unitPricePaid": { "$ref": "#/$defs/money" },
+        "lineItemType": { "type": "string", "description": "CONFIRMED live, 2026-08-16 — echoes the request's lineItemType, e.g. \"PHYSICAL_PRODUCT\"." },
+        "weight": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "width": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "length": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "height": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "variantOptions": {
+          "type": "array",
+          "description": "CONFIRMED live, 2026-08-16.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "optionName": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        },
+        "customizations": { "type": ["array", "null"], "description": "CONFIRMED live, 2026-08-16 — null when the line item has none." },
+        "imageUrl": { "type": "string", "description": "CONFIRMED live, 2026-08-16." }
       }
     },
     "order": {
       "title": "Order",
       "type": "object",
-      "description": "UNVERIFIED — modelled, kept consistent with fixtures/create-order-response.json.",
+      "description": "CONFIRMED live, 2026-08-16, via list_orders against a real order — matches create_order's captured response shape exactly, except list_orders' per-order objects do NOT include idempotencyKey (that field is specific to the create_order response).",
       "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
       "properties": {
         "id": { "type": "string" },
@@ -197,11 +217,25 @@
         "createdOn": { "type": "string", "format": "date-time" },
         "modifiedOn": { "type": "string", "format": "date-time" },
         "testmode": { "type": "boolean" },
+        "channel": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"external\"." },
+        "channelName": { "type": "string" },
+        "externalOrderReference": { "type": "string" },
         "customerEmail": { "type": "string", "format": "email" },
+        "customerId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
         "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "fulfilledOn": { "type": ["string", "null"], "format": "date-time", "description": "CONFIRMED live, 2026-08-16 — null when unfulfilled." },
+        "fulfillments": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array on an unfulfilled order." },
         "billingAddress": { "$ref": "#/$defs/address" },
         "shippingAddress": { "$ref": "#/$defs/address" },
         "lineItems": { "type": "array", "items": { "$ref": "#/$defs/lineItem" } },
+        "internalNotes": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "shippingLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised against a populated case." },
+        "discountLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "formSubmission": { "type": ["object", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed; populated shape unconfirmed." },
+        "priceTaxInterpretation": { "type": "string", "enum": ["EXCLUSIVE", "INCLUSIVE"] },
+        "paymentState": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"PAID\". Other enum members unconfirmed." },
+        "shippingOptionName": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
+        "shippingOptionServiceType": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
         "subtotal": { "$ref": "#/$defs/money" },
         "shippingTotal": { "$ref": "#/$defs/money" },
         "discountTotal": { "$ref": "#/$defs/money" },
