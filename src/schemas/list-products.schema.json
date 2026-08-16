@@ -20,7 +20,7 @@
         "limit": {
           "type": "integer",
           "minimum": 1,
-          "description": "Whether this parameter is honored at all is unconfirmed — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage: false. Inconclusive: could mean a minimum page size larger than this store's catalog, or that the parameter isn't honored on this endpoint, or a combination. Cannot be resolved without a larger catalog to test against."
+          "description": "CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs."
         }
       },
       "dependentSchemas": {
