@@ -9,7 +9,7 @@
     "input": {
       "title": "ListOrdersInput",
       "type": "object",
-      "description": "All fields optional. `cursor` and the modifiedAfter/modifiedBefore time-range window are two mutually exclusive paging strategies and can't be combined; that's the only cross-field restriction confirmed against real Squarespace behavior. `limit` and `fulfillmentStatus` may accompany either paging strategy, and modifiedAfter/modifiedBefore are not required to be paired — an unconfirmed restriction that was removed.",
+      "description": "All fields optional. CONFIRMED live, 2026-08-16, against all four cursor combinations directly (a 56-order store was built to produce a real pagination cursor to test against): cursor + limit succeeds; cursor + modifiedAfter/modifiedBefore and cursor + fulfillmentStatus are both rejected with 400 INVALID_REQUEST_ERROR.INVALID_ARGUMENT, \"Cursor cannot be set while other parameters are present.\" So `cursor` specifically excludes `modifiedAfter`, `modifiedBefore`, and `fulfillmentStatus` — but NOT `limit`. This is narrower than list_products' confirmed rule that cursor must be the only parameter sent; don't assume the two endpoints share the same restriction. Separately, `modifiedAfter` and `modifiedBefore` are CONFIRMED live to require pairing — sending one without the other is rejected with 400 INVALID_REQUEST_ERROR.MISSING_ARGUMENT, \"'modifiedBefore' and 'modifiedAfter' must both be specified.\" (This pairing requirement was previously removed from validation as unconfirmed; live evidence has now reinstated it.)",
       "additionalProperties": false,
       "properties": {
         "cursor": {
@@ -30,13 +30,18 @@
         },
         "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" }
       },
+      "dependentRequired": {
+        "modifiedAfter": ["modifiedBefore"],
+        "modifiedBefore": ["modifiedAfter"]
+      },
       "dependentSchemas": {
         "cursor": {
-          "description": "When paging by cursor, modifiedAfter/modifiedBefore may not also be sent — cursor and the time-range window are mutually exclusive paging strategies. limit and fulfillmentStatus are unaffected.",
+          "description": "CONFIRMED live, 2026-08-16 — cursor excludes modifiedAfter, modifiedBefore, and fulfillmentStatus specifically (400 INVALID_REQUEST_ERROR.INVALID_ARGUMENT, \"Cursor cannot be set while other parameters are present.\"). limit is NOT excluded — cursor + limit is confirmed to succeed.",
           "not": {
             "anyOf": [
               { "required": ["modifiedAfter"] },
-              { "required": ["modifiedBefore"] }
+              { "required": ["modifiedBefore"] },
+              { "required": ["fulfillmentStatus"] }
             ]
           }
         }

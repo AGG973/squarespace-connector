@@ -29,21 +29,46 @@ interface ListOrdersResponse {
 }
 
 /**
- * Validates the one paging rule confirmed against real Squarespace behavior
- * (see src/schemas/list-orders.schema.json): `cursor` and the
- * `modifiedAfter`/`modifiedBefore` time-range window are two different paging
- * strategies and can't be combined. `limit` and `fulfillmentStatus` are
- * unaffected, and modifiedAfter/modifiedBefore are not required to be paired —
- * neither restriction is confirmed against the live API.
+ * Validates the two paging rules CONFIRMED live, 2026-08-16, against real
+ * Squarespace behavior (see src/schemas/list-orders.schema.json — all four
+ * cursor combinations were tested directly against the API, not inferred):
+ *
+ * 1. `cursor` excludes `modifiedAfter`, `modifiedBefore`, and
+ *    `fulfillmentStatus` specifically — each combination was rejected with
+ *    400 INVALID_REQUEST_ERROR.INVALID_ARGUMENT, "Cursor cannot be set while
+ *    other parameters are present." `limit` is NOT excluded — cursor +
+ *    limit was confirmed to succeed. (Narrower than list_products' confirmed
+ *    rule that cursor must be the only parameter sent — don't conflate the
+ *    two endpoints.)
+ * 2. `modifiedAfter` and `modifiedBefore` must both be present or both be
+ *    absent — a one-sided window was rejected with 400
+ *    INVALID_REQUEST_ERROR.MISSING_ARGUMENT, "'modifiedBefore' and
+ *    'modifiedAfter' must both be specified." This pairing requirement was
+ *    previously removed from validation as unconfirmed; live evidence has
+ *    now reinstated it.
  */
 function assertValidInput(input: ListOrdersInput): void {
-  const hasCursor = input.cursor !== undefined;
-  const hasDateRange = input.modifiedAfter !== undefined || input.modifiedBefore !== undefined;
+  const hasModifiedAfter = input.modifiedAfter !== undefined;
+  const hasModifiedBefore = input.modifiedBefore !== undefined;
 
-  if (hasCursor && hasDateRange) {
+  if (hasModifiedAfter !== hasModifiedBefore) {
     throw new Error(
-      "listOrders: `cursor` cannot be combined with `modifiedAfter`/`modifiedBefore` — " +
-        "cursor and the time-range window are mutually exclusive paging strategies.",
+      "listOrders: `modifiedAfter` and `modifiedBefore` must both be present or both be " +
+        "absent — confirmed live, Squarespace rejects a one-sided window with 400 " +
+        "INVALID_REQUEST_ERROR.MISSING_ARGUMENT, \"'modifiedBefore' and 'modifiedAfter' must " +
+        'both be specified."',
+    );
+  }
+
+  const hasCursor = input.cursor !== undefined;
+  const hasFulfillmentStatus = input.fulfillmentStatus !== undefined;
+
+  if (hasCursor && (hasModifiedAfter || hasModifiedBefore || hasFulfillmentStatus)) {
+    throw new Error(
+      "listOrders: `cursor` cannot be combined with `modifiedAfter`, `modifiedBefore`, or " +
+        "`fulfillmentStatus` — confirmed live, Squarespace rejects the combination with 400 " +
+        'INVALID_REQUEST_ERROR.INVALID_ARGUMENT, "Cursor cannot be set while other parameters ' +
+        'are present." `limit` is unaffected and may be combined with `cursor`.',
     );
   }
 }

@@ -37,8 +37,8 @@ paths:
           schema:
             type: integer
             minimum: 1
-            description: "Whether this parameter is honored at all is unconfirmed — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage: false. Inconclusive: could mean a minimum page size larger than this store's catalog, or that the parameter isn't honored on this endpoint, or a combination. Cannot be resolved without a larger catalog to test against."
-          description: "Whether this parameter is honored at all is unconfirmed — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage: false. Inconclusive: could mean a minimum page size larger than this store's catalog, or that the parameter isn't honored on this endpoint, or a combination. Cannot be resolved without a larger catalog to test against."
+            description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
+          description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
           example: 1
       responses:
         "200":
@@ -976,7 +976,7 @@ components:
         limit:
           type: integer
           minimum: 1
-          description: "Whether this parameter is honored at all is unconfirmed — a live test requesting limit:2 against a 4-product catalog returned all 4 products with hasNextPage: false. Inconclusive: could mean a minimum page size larger than this store's catalog, or that the parameter isn't honored on this endpoint, or a combination. Cannot be resolved without a larger catalog to test against."
+          description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
       dependentSchemas:
         cursor:
           maxProperties: 1
@@ -1224,6 +1224,7 @@ components:
     ListOrdersLineItem:
       title: OrderLineItem
       type: object
+      description: CONFIRMED live, 2026-08-16, against a real order's response via list_orders — matches create_order's captured line-item shape exactly.
       required:
         - id
         - quantity
@@ -1239,6 +1240,9 @@ components:
           type:
             - string
             - "null"
+        productId:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
         productName:
           type: string
         quantity:
@@ -1246,10 +1250,43 @@ components:
           minimum: 1
         unitPricePaid:
           $ref: "#/components/schemas/ListOrdersMoney"
+        lineItemType:
+          type: string
+          description: CONFIRMED live, 2026-08-16 — echoes the request's lineItemType, e.g. "PHYSICAL_PRODUCT".
+        weight:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        width:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        length:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        height:
+          type: number
+          description: CONFIRMED live, 2026-08-16.
+        variantOptions:
+          type: array
+          description: CONFIRMED live, 2026-08-16.
+          items:
+            type: object
+            properties:
+              optionName:
+                type: string
+              value:
+                type: string
+        customizations:
+          type:
+            - array
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null when the line item has none.
+        imageUrl:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
     ListOrdersOrder:
       title: Order
       type: object
-      description: UNVERIFIED — modelled, kept consistent with fixtures/create-order-response.json.
+      description: CONFIRMED live, 2026-08-16, via list_orders against a real order — matches create_order's captured response shape exactly, except list_orders' per-order objects do NOT include idempotencyKey (that field is specific to the create_order response).
       required:
         - id
         - orderNumber
@@ -1269,11 +1306,30 @@ components:
           format: date-time
         testmode:
           type: boolean
+        channel:
+          type: string
+          description: CONFIRMED live, 2026-08-16, e.g. "external".
+        channelName:
+          type: string
+        externalOrderReference:
+          type: string
         customerEmail:
           type: string
           format: email
+        customerId:
+          type: string
+          description: CONFIRMED live, 2026-08-16.
         fulfillmentStatus:
           $ref: "#/components/schemas/ListOrdersFulfillmentStatus"
+        fulfilledOn:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: CONFIRMED live, 2026-08-16 — null when unfulfilled.
+        fulfillments:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array on an unfulfilled order.
         billingAddress:
           $ref: "#/components/schemas/ListOrdersAddress"
         shippingAddress:
@@ -1282,6 +1338,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ListOrdersLineItem"
+        internalNotes:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised.
+        shippingLines:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised against a populated case.
+        discountLines:
+          type: array
+          description: CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised.
+        formSubmission:
+          type:
+            - object
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed; populated shape unconfirmed.
+        priceTaxInterpretation:
+          type: string
+          enum:
+            - EXCLUSIVE
+            - INCLUSIVE
+        paymentState:
+          type: string
+          description: CONFIRMED live, 2026-08-16, e.g. "PAID". Other enum members unconfirmed.
+        shippingOptionName:
+          type:
+            - string
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed.
+        shippingOptionServiceType:
+          type:
+            - string
+            - "null"
+          description: CONFIRMED live, 2026-08-16 — null observed.
         subtotal:
           $ref: "#/components/schemas/ListOrdersMoney"
         shippingTotal:
@@ -1297,7 +1385,7 @@ components:
     ListOrdersInput:
       title: ListOrdersInput
       type: object
-      description: All fields optional. `cursor` and the modifiedAfter/modifiedBefore time-range window are two mutually exclusive paging strategies and can't be combined; that's the only cross-field restriction confirmed against real Squarespace behavior. `limit` and `fulfillmentStatus` may accompany either paging strategy, and modifiedAfter/modifiedBefore are not required to be paired — an unconfirmed restriction that was removed.
+      description: "All fields optional. CONFIRMED live, 2026-08-16, against all four cursor combinations directly (a 56-order store was built to produce a real pagination cursor to test against): cursor + limit succeeds; cursor + modifiedAfter/modifiedBefore and cursor + fulfillmentStatus are both rejected with 400 INVALID_REQUEST_ERROR.INVALID_ARGUMENT, \"Cursor cannot be set while other parameters are present.\" So `cursor` specifically excludes `modifiedAfter`, `modifiedBefore`, and `fulfillmentStatus` — but NOT `limit`. This is narrower than list_products' confirmed rule that cursor must be the only parameter sent; don't assume the two endpoints share the same restriction. Separately, `modifiedAfter` and `modifiedBefore` are CONFIRMED live to require pairing — sending one without the other is rejected with 400 INVALID_REQUEST_ERROR.MISSING_ARGUMENT, \"'modifiedBefore' and 'modifiedAfter' must both be specified.\" (This pairing requirement was previously removed from validation as unconfirmed; live evidence has now reinstated it.)"
       additionalProperties: false
       properties:
         cursor:
@@ -1317,15 +1405,22 @@ components:
           description: ISO 8601. May be used alone or alongside modifiedAfter.
         fulfillmentStatus:
           $ref: "#/components/schemas/ListOrdersFulfillmentStatus"
+      dependentRequired:
+        modifiedAfter:
+          - modifiedBefore
+        modifiedBefore:
+          - modifiedAfter
       dependentSchemas:
         cursor:
-          description: When paging by cursor, modifiedAfter/modifiedBefore may not also be sent — cursor and the time-range window are mutually exclusive paging strategies. limit and fulfillmentStatus are unaffected.
+          description: CONFIRMED live, 2026-08-16 — cursor excludes modifiedAfter, modifiedBefore, and fulfillmentStatus specifically (400 INVALID_REQUEST_ERROR.INVALID_ARGUMENT, "Cursor cannot be set while other parameters are present."). limit is NOT excluded — cursor + limit is confirmed to succeed.
           not:
             anyOf:
               - required:
                   - modifiedAfter
               - required:
                   - modifiedBefore
+              - required:
+                  - fulfillmentStatus
     ListOrdersOutput:
       title: ListOrdersResult
       type: object

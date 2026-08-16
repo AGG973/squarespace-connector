@@ -92,35 +92,62 @@ describe("listOrders", () => {
     expect(mockRequest).toHaveBeenCalledWith(`/orders?${expectedQuery}`);
   });
 
-  it("rejects cursor combined with a date range before any request is sent", async () => {
+  // All four cursor combinations below are CONFIRMED live, 2026-08-16, tested
+  // directly against the real API (a 56-order store was built specifically
+  // to produce a real pagination cursor) — see src/actions/list-orders.ts
+  // and connector.yaml for the exact error responses.
+
+  it("allows cursor combined with limit — confirmed live, the only param that combines with cursor", async () => {
+    mockRequest.mockResolvedValue(emptyOrdersResponse);
+
+    await listOrders({ cursor: "abc123", limit: 20 });
+
+    const expectedQuery = new URLSearchParams({ cursor: "abc123", limit: "20" }).toString();
+    expect(mockRequest).toHaveBeenCalledWith(`/orders?${expectedQuery}`);
+  });
+
+  it("rejects cursor combined with a paired modifiedAfter/modifiedBefore window — confirmed live 400 INVALID_ARGUMENT", async () => {
     await expect(
-      listOrders({ cursor: "abc123", modifiedAfter: "2026-01-01T00:00:00.000Z" }),
+      listOrders({
+        cursor: "abc123",
+        modifiedAfter: "2026-01-01T00:00:00.000Z",
+        modifiedBefore: "2026-08-08T00:00:00.000Z",
+      }),
     ).rejects.toThrow(/cursor/i);
 
     expect(mockRequest).not.toHaveBeenCalled();
   });
 
-  it("allows cursor combined with fulfillmentStatus and/or limit (only the date-range window is exclusive with cursor)", async () => {
-    mockRequest.mockResolvedValue(emptyOrdersResponse);
+  it("rejects cursor combined with fulfillmentStatus — confirmed live, same error as the date-range case", async () => {
+    await expect(
+      listOrders({ cursor: "abc123", fulfillmentStatus: "PENDING" }),
+    ).rejects.toThrow(/cursor/i);
 
-    await listOrders({ cursor: "abc123", fulfillmentStatus: "PENDING", limit: 20 });
-
-    const expectedQuery = new URLSearchParams({
-      cursor: "abc123",
-      limit: "20",
-      fulfillmentStatus: "PENDING",
-    }).toString();
-    expect(mockRequest).toHaveBeenCalledWith(`/orders?${expectedQuery}`);
+    expect(mockRequest).not.toHaveBeenCalled();
   });
 
-  it("allows a one-sided date range — modifiedAfter/modifiedBefore are not required to be paired", async () => {
-    mockRequest.mockResolvedValue(emptyOrdersResponse);
+  it("rejects cursor combined with a one-sided date range via the pairing rule, not the cursor rule (matches live precedence)", async () => {
+    await expect(
+      listOrders({ cursor: "abc123", modifiedAfter: "2026-01-01T00:00:00.000Z" }),
+    ).rejects.toThrow(/modifiedBefore/i);
 
-    await listOrders({ modifiedAfter: "2026-01-01T00:00:00.000Z" });
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
 
-    expect(mockRequest).toHaveBeenCalledWith(
-      `/orders?${new URLSearchParams({ modifiedAfter: "2026-01-01T00:00:00.000Z" }).toString()}`,
-    );
+  it("rejects modifiedAfter without modifiedBefore — confirmed live 400 MISSING_ARGUMENT, pairing reinstated", async () => {
+    await expect(
+      listOrders({ modifiedAfter: "2026-01-01T00:00:00.000Z" }),
+    ).rejects.toThrow(/modifiedBefore/i);
+
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it("rejects modifiedBefore without modifiedAfter — same pairing rule, other direction", async () => {
+    await expect(
+      listOrders({ modifiedBefore: "2026-08-08T00:00:00.000Z" }),
+    ).rejects.toThrow(/modifiedAfter/i);
+
+    expect(mockRequest).not.toHaveBeenCalled();
   });
 
   it("defaults pagination when the response omits it", async () => {
