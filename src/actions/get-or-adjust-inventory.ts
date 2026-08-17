@@ -54,10 +54,13 @@ interface GetInventoryResponse {
 }
 
 /**
- * UNVERIFIED — modelled on the documented Squarespace adjustments endpoint
- * (src/schemas/get-or-adjust-inventory.schema.json), not yet confirmed live.
- * The endpoint may also answer 204 No Content, in which case
- * squarespaceRequest resolves `undefined` rather than this shape.
+ * CONFIRMED live, 2026-08-16 — a full incrementOperations/setFiniteOperations
+ * round trip against a real variant succeeded, with the resulting `{
+ * adjusted: true }` verified accurate against a real stock-level change (see
+ * src/schemas/get-or-adjust-inventory.schema.json). The endpoint may also
+ * answer 204 No Content, in which case squarespaceRequest resolves
+ * `undefined` rather than this shape — which raw form occurs wasn't itself
+ * distinguished by that test.
  */
 interface AdjustInventoryResponse {
   adjusted?: boolean;
@@ -144,9 +147,8 @@ async function adjustInventory(input: GetOrAdjustInventoryInput): Promise<Adjust
  * switches to write mode (POST /inventory/adjustments, Idempotency-Key
  * header required); otherwise this reads (GET /inventory).
  *
- * The write path is UNVERIFIED against the live API — see the schema's
- * VERIFICATION STATUS note — so treat its exact request/response shape as
- * provisional until a real adjustment has been confirmed.
+ * The write path is CONFIRMED live, 2026-08-16 — see the schema's
+ * VERIFICATION STATUS note for the round-trip evidence.
  */
 export async function getOrAdjustInventory(
   input: GetOrAdjustInventoryInput = {},

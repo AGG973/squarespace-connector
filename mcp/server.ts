@@ -70,22 +70,25 @@ const TOOLS: Tool[] = [
       "Read current inventory levels, or submit a stock adjustment. Mode is inferred from " +
       "input: pass incrementOperations/setFiniteOperations/setUnlimitedOperations to adjust " +
       "(write, requires Idempotency-Key — auto-generated if idempotencyKey is omitted), " +
-      "otherwise this reads. The adjust path is UNVERIFIED against the live API.",
+      "otherwise this reads. The adjust path is CONFIRMED live, 2026-08-16 (increment/" +
+      "setFinite round trip verified against a real variant).",
     inputSchema: loadInputSchema("get-or-adjust-inventory.schema.json"),
   },
   {
     name: "squarespace.create_order",
     description:
       "Create a new order. Request shape matches Squarespace's official documented contract " +
-      "(reconciled 2026-08-10), but END-TO-END SUCCESS IS STILL UNVERIFIED — no order has ever " +
-      "been successfully created. Irreversible and rate-limited to 100 calls/hour/site per " +
-      "connector.yaml. Requires channelName, createdOn, externalOrderReference, fulfillments " +
-      "(pass [] if none), grandTotal, priceTaxInterpretation (\"EXCLUSIVE\" or \"INCLUSIVE\"), " +
-      "and lineItems (each with lineItemType — \"PHYSICAL_PRODUCT\" for physical products — " +
-      "variantId, quantity, and unitPricePaid; no sku, and no title either when lineItemType " +
-      "is PHYSICAL_PRODUCT — confirmed live, 2026-08-11, that a non-null title is rejected in " +
-      "that case). customerEmail is optional. Idempotency-Key is auto-generated if " +
-      "idempotencyKey is omitted.",
+      "(reconciled 2026-08-10). END-TO-END SUCCESS IS CONFIRMED live, 2026-08-16, via a real " +
+      "order created with a personal Developer API Key. Irreversible and rate-limited to 100 " +
+      "calls/hour/site per connector.yaml. Requires channelName, createdOn, " +
+      "externalOrderReference, fulfillments (pass [] if none), grandTotal, subtotal (must " +
+      "equal the sum of lineItems[].unitPricePaid.value — confirmed live, 2026-08-16, to be " +
+      "functionally required despite being modeled as optional), priceTaxInterpretation " +
+      "(\"EXCLUSIVE\" or \"INCLUSIVE\"), and lineItems (each with lineItemType — " +
+      "\"PHYSICAL_PRODUCT\" for physical products — variantId, quantity, and unitPricePaid; " +
+      "no sku, and no title either when lineItemType is PHYSICAL_PRODUCT — confirmed live, " +
+      "2026-08-11, that a non-null title is rejected in that case). customerEmail is " +
+      "optional. Idempotency-Key is auto-generated if idempotencyKey is omitted.",
     inputSchema: loadInputSchema("create-order.schema.json"),
   },
   {

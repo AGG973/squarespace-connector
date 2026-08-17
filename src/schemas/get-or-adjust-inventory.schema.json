@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/get-or-adjust-inventory.schema.json",
   "title": "squarespace.get_or_adjust_inventory",
-  "description": "Input/output contract for the two-operation inventory action on the commerce base URL (https://api.squarespace.com/1.0/commerce). get_inventory = GET /inventory (read). adjust_inventory = POST /inventory/adjustments (write, requires an Idempotency-Key header, reversible by submitting an opposite adjustment). VERIFICATION STATUS: the get_inventory output is fully verified — it mirrors the real 21-record capture in fixtures/inventory.json. The adjust_inventory request body and response are NOT verified: the three-array operation form below is modelled on the documented Squarespace adjustments endpoint and must be confirmed before implementation.",
+  "description": "Input/output contract for the two-operation inventory action on the commerce base URL (https://api.squarespace.com/1.0/commerce). get_inventory = GET /inventory (read). adjust_inventory = POST /inventory/adjustments (write, requires an Idempotency-Key header, reversible by submitting an opposite adjustment). VERIFICATION STATUS: the get_inventory output is fully verified — it mirrors the real 21-record capture in fixtures/inventory.json. The adjust_inventory write path is now CONFIRMED live, 2026-08-16 — a full round trip was run against a real variant: incrementOperations (+1) followed by setFiniteOperations (back to the original quantity), with the actual stock level verified via get_inventory before and after each call (10 → 11 → 10). Both calls returned `{ adjusted: true }` from the connector (whether Squarespace's raw response was a JSON body or a synthesized result from 204 No Content was not itself distinguished by this test), and that result was confirmed to accurately reflect that the write took effect. Negative/zero incrementOperations quantities were separately confirmed live, 2026-08-10, to be rejected (see the `quantity` field note below).",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
@@ -127,7 +127,11 @@
       "properties": {
         "operation": { "const": "get_inventory" },
         "cursor": { "type": "string", "minLength": 1 },
-        "limit": { "type": "integer", "minimum": 1 }
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "CONFIRMED live, 2026-08-16 — limit:5 against a 51-item inventory returned the same 51 records as no limit at all: byte-identical response, same records, same cursor, hasNextPage:true both times. Same pattern as list_products' confirmed `limit` behavior — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Now confirmed across two separate endpoints (products and inventory), suggesting this may be general Squarespace API behavior rather than something specific to one endpoint. Don't rely on `limit` to control page size below 50; use cursor-based pagination to page through larger inventories."
+        }
       },
       "dependentSchemas": {
         "cursor": {
@@ -151,7 +155,7 @@
     "adjustInventoryInput": {
       "title": "AdjustInventoryInput",
       "type": "object",
-      "description": "UNVERIFIED. At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately.",
+      "description": "CONFIRMED live, 2026-08-16 — a full incrementOperations/setFiniteOperations round trip against a real variant succeeded and was verified to take effect (see this schema's top-level VERIFICATION STATUS). At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately.",
       "required": ["operation"],
       "additionalProperties": false,
       "anyOf": [
@@ -225,7 +229,7 @@
     "adjustInventoryOutput": {
       "title": "AdjustInventoryOutput",
       "type": "object",
-      "description": "UNVERIFIED. The live endpoint may answer 204 No Content with an empty body, in which case the connector should synthesise this acknowledgement rather than parse one.",
+      "description": "CONFIRMED live, 2026-08-16 — `{ adjusted: true }` was verified to accurately reflect a real write against a real variant (see this schema's top-level VERIFICATION STATUS). Whether the live endpoint answers with this JSON body or with 204 No Content (in which case the connector synthesises this acknowledgement rather than parsing one) was not itself distinguished by that test — either way, the result is confirmed accurate.",
       "required": ["adjusted"],
       "properties": {
         "adjusted": { "type": "boolean" }

@@ -1,22 +1,20 @@
 {
-  "_comment" : "PLACEHOLDER — not yet verified against live API, confirm in Week 2 when get_contact is actually implemented and tested.",
-  "id" : "00000000-0000-0000-0000-000000000000",
-  "email" : "placeholder@example.com",
-  "firstName" : "Placeholder",
-  "lastName" : "Contact",
-  "transactionalEmailStatus" : "SUBSCRIBED",
-  "createdOn" : "2026-01-01T00:00:00.000Z",
-  "lastModifiedOn" : "2026-01-01T00:00:00.000Z",
-  "address" : {
-    "address1" : "123 Example St",
-    "address2" : null,
-    "city" : "Brooklyn",
-    "state" : "NY",
-    "countryCode" : "US",
-    "postalCode" : "11201"
-  },
-  "phoneNumbers" : [ "555-0100" ],
-  "notes" : [ ],
-  "lists" : [ ],
-  "tags" : [ ]
+  "_comment": "CONFIRMED live, 2026-08-11 (re-verified 2026-08-16) — real captured response from GET /contacts/{id}. Superseded the earlier PLACEHOLDER, which modeled a flat, non-`primaryEmail` shape that does not match the real API. email below has been replaced with a placeholder; every other field is the real response verbatim, including the confirmed absence of `phoneNumbers`, `notes`, `lists`, and `tags` (see connector.yaml's known_limitations for the tags/notes exclusion finding).",
+  "contact": {
+    "id": "6a7afd9c3a715540f23e0a54",
+    "createdOn": "2026-08-11T10:46:52.880876Z",
+    "firstName": "Alya",
+    "lastName": "",
+    "locale": null,
+    "primaryEmail": {
+      "createdOn": "2026-08-11T10:46:52.880876Z",
+      "email": "buyer@example.com",
+      "acceptsMarketing": {
+        "acceptsMarketing": true,
+        "joinedOn": "2026-08-11T10:46:52.925359Z",
+        "leftOn": null
+      }
+    },
+    "defaultShippingAddress": null
+  }
 }

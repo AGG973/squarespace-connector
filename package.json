@@ -1,8 +1,7 @@
 {
   "name": "squarespace-connector",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A typed connector for the Squarespace Commerce and Contacts APIs, exposed via a local MCP server.",
   "scripts": {
     "test": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run",
     "typecheck": "tsc --noEmit",
@@ -25,14 +24,13 @@
   },
   "homepage": "https://github.com/AGG973/squarespace-connector#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "typescript": "^7.0.2",
-    "vitest": "^4.1.10",
-    "zod": "^4.4.3"
+    "@modelcontextprotocol/sdk": "^1.30.0"
   },
   "devDependencies": {
     "@redocly/cli": "^2.46.1",
     "@types/node": "^26.1.2",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10",
     "yaml": "^2.9.0"
   }
 }

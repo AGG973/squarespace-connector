@@ -1075,7 +1075,7 @@ components:
     GetOrAdjustInventoryAdjustInventoryInput:
       title: AdjustInventoryInput
       type: object
-      description: "UNVERIFIED. At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately."
+      description: "CONFIRMED live, 2026-08-16 — a full incrementOperations/setFiniteOperations round trip against a real variant succeeded and was verified to take effect (see this schema's top-level VERIFICATION STATUS). At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately."
       required:
         - operation
       additionalProperties: false
@@ -1150,7 +1150,7 @@ components:
     GetOrAdjustInventoryAdjustInventoryOutput:
       title: AdjustInventoryOutput
       type: object
-      description: UNVERIFIED. The live endpoint may answer 204 No Content with an empty body, in which case the connector should synthesise this acknowledgement rather than parse one.
+      description: "CONFIRMED live, 2026-08-16 — `{ adjusted: true }` was verified to accurately reflect a real write against a real variant (see this schema's top-level VERIFICATION STATUS). Whether the live endpoint answers with this JSON body or with 204 No Content (in which case the connector synthesises this acknowledgement rather than parsing one) was not itself distinguished by that test — either way, the result is confirmed accurate."
       required:
         - adjusted
       properties:
@@ -1846,7 +1846,7 @@ components:
     GetContactContact:
       title: Contact
       type: object
-      description: CONFIRMED live, 2026-08-11, against exactly one real contact record. Fields present here were observed on that record; a field's absence here does not prove it can never appear on another contact (e.g. one with notes/tags/lists actually populated) — only that this record didn't have it. Superseded the earlier UNVERIFIED placeholder shape, which had a materially different (flat, non-`primaryEmail`) structure.
+      description: CONFIRMED live, 2026-08-11, against exactly one real contact record. Fields present here were observed on that record. Superseded the earlier UNVERIFIED placeholder shape, which had a materially different (flat, non-`primaryEmail`) structure. `tags` and internal notes are CONFIRMED live, 2026-08-16, to never appear in this response regardless of whether the contact has them (verified by adding a real tag/note via the Squarespace admin UI, confirming they saved, then re-fetching — no trace of either field before or after; see connector.yaml). `lists` remains unconfirmed either way, since it wasn't exercised by that test — its absence here is still only inferred from the one original record.
       required:
         - id
         - createdOn
