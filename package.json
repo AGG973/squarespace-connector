@@ -1,13 +1,17 @@
 {
   "name": "squarespace-connector",
   "version": "1.0.0",
-  "description": "A typed connector for the Squarespace Commerce and Contacts APIs, exposed via a local MCP server.",
+  "description": "A typed connector for the Squarespace Commerce and Contacts APIs, exposed via an MCP server (stdio locally, Streamable HTTP when hosted).",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "scripts": {
     "test": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run",
     "typecheck": "tsc --noEmit",
     "check": "node --env-file-if-exists=.env src/check-connection.ts",
     "check:actions": "node --env-file-if-exists=.env src/check-actions.ts",
     "mcp": "node --env-file-if-exists=.env mcp/server.ts",
+    "start": "node --env-file-if-exists=.env mcp/server.ts",
     "generate:openapi": "node src/generate-openapi.ts",
     "validate:openapi": "redocly lint openapi.yaml"
   },

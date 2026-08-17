@@ -1,6 +1,6 @@
 # squarespace-connector
 
-A typed connector for the Squarespace Commerce (`1.0`) and Contacts (`v1`) APIs, exposing five actions through both a direct TypeScript interface (`src/connector.ts`) and a local MCP server (`mcp/server.ts`).
+A typed connector for the Squarespace Commerce (`1.0`) and Contacts (`v1`) APIs, exposing five actions through both a direct TypeScript interface (`src/connector.ts`) and an MCP server (`mcp/server.ts`) — stdio for local use, Streamable HTTP for hosted deployment.
 
 ## What this connector does
 
@@ -34,14 +34,14 @@ Copy `.env.example` to `.env` and fill in:
 | Variable | Required | Description |
 |---|---|---|
 | `SQUARESPACE_API_KEY` | Yes | Personal Developer API Key, sent as a Bearer token in the `Authorization` header. |
+| `PORT` | HTTP mode only | Selects the transport: set → HTTP; unset → stdio. Hosting platforms normally set this automatically — don't hardcode it. |
+| `MCP_AUTH_TOKEN` | HTTP mode only | Bearer token required on every `POST /mcp` request, checked against the request's `Authorization` header. Separate from `SQUARESPACE_API_KEY` — this one protects access to *this* server, not Squarespace's. Requests without it are rejected with 401 (fails closed if unset). |
 
 ### Running locally (stdio)
 
-Stdio is currently the only transport this connector ships:
-
 ```
 npm install
-cp .env.example .env   # then fill in SQUARESPACE_API_KEY
+cp .env.example .env   # then fill in SQUARESPACE_API_KEY; leave PORT and MCP_AUTH_TOKEN unset
 npm run mcp
 ```
 
@@ -49,7 +49,16 @@ This starts the MCP server over stdio, exposing `testConnection` plus the five `
 
 ### Running via HTTP
 
-Not yet available. `mcp/server.ts` currently implements stdio transport only — its own header comment notes HTTP deployment as "separate, later work." There is no HTTP entry point in this repo yet.
+For hosted/remote deployment, `mcp/server.ts` also implements the MCP SDK's Streamable HTTP transport. Mode is chosen automatically at startup: if `PORT` is set, the server runs as HTTP instead of stdio.
+
+```
+PORT=3000 MCP_AUTH_TOKEN=<a long random secret> npm start
+```
+
+- `POST /mcp` — the MCP endpoint. Requires `Authorization: Bearer <MCP_AUTH_TOKEN>`; missing or wrong token gets a 401. Stateless: no session ID, a fresh internal server instance per request.
+- `GET /health` — unauthenticated 200 OK, for the hosting platform's own uptime checks.
+
+Most hosting platforms set `PORT` for you automatically, so in practice deploying just means setting `SQUARESPACE_API_KEY` and `MCP_AUTH_TOKEN` and pointing the platform at `npm start`.
 
 ### Other useful scripts
 

@@ -1,16 +1,25 @@
 /**
- * MCP adapter for the Squarespace connector — stdio transport, for local
- * testing (HTTP deployment is separate, later work).
+ * MCP adapter for the Squarespace connector. Supports two transports:
+ *
+ * - stdio, for local Claude Code usage via .mcp.json (`npm run mcp`).
+ * - Streamable HTTP, for remote/hosted deployment (`npm start`), guarded by
+ *   a bearer token separate from the Squarespace API key — see
+ *   isAuthorized().
+ *
+ * Mode is chosen automatically at startup based on `process.env.PORT`: set
+ * → HTTP; unset → stdio. See main() at the bottom.
  *
  * Thin by design: no business logic and no direct client.ts/Squarespace
  * calls here — tools/call only ever routes to src/connector.ts.
  */
 
+import { createServer as createNodeHttpServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -147,34 +156,153 @@ async function callTool(
   throw new Error(`Unknown tool: "${name}"`);
 }
 
+/**
+ * Builds a fresh MCP Server wired with the same tools/list and tools/call
+ * handlers every time. Used once at module scope for the stdio transport
+ * (and by tests), and once per request for stateless HTTP — see
+ * handleHttpRequest below, which follows the MCP SDK's documented stateless
+ * pattern of a fresh Server + Transport pair per request rather than sharing
+ * one Server across concurrent HTTP requests.
+ */
+function createMcpServer(): Server {
+  const mcpServer = new Server(
+    { name: "squarespace-connector", version: "0.1.0" },
+    { capabilities: { tools: {} } },
+  );
+
+  mcpServer.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+
+  mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+    // One bad call must not kill the session — every path through
+    // connector.execute()/testConnection() is caught and returned as
+    // isError content rather than left to propagate.
+    try {
+      return await callTool(request.params.name, request.params.arguments);
+    } catch (error) {
+      return textResult(describeError(error), true);
+    }
+  });
+
+  return mcpServer;
+}
+
 /** Exported so tests can drive it over an in-memory transport instead of real stdio. */
-export const server = new Server(
-  { name: "squarespace-connector", version: "0.1.0" },
-  { capabilities: { tools: {} } },
-);
+export const server = createMcpServer();
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+/**
+ * Checks the HTTP endpoint's own access token — separate from
+ * SQUARESPACE_API_KEY, which authenticates this server to Squarespace, not
+ * callers to this server. Expects `Authorization: Bearer <MCP_AUTH_TOKEN>`.
+ * Fails closed: an unset MCP_AUTH_TOKEN rejects every request rather than
+ * leaving the endpoint open.
+ */
+function isAuthorized(req: IncomingMessage): boolean {
+  const expected = process.env.MCP_AUTH_TOKEN;
+  if (!expected) return false;
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  // One bad call must not kill the session — every path through
-  // connector.execute()/testConnection() is caught and returned as
-  // isError content rather than left to propagate.
-  try {
-    return await callTool(request.params.name, request.params.arguments);
-  } catch (error) {
-    return textResult(describeError(error), true);
+  const header = req.headers.authorization;
+  const value = Array.isArray(header) ? header[0] : header;
+  if (!value?.startsWith("Bearer ")) return false;
+
+  return value.slice("Bearer ".length).trim() === expected;
+}
+
+function sendJson(res: ServerResponse, status: number, body: unknown, extraHeaders?: Record<string, string>): void {
+  res.writeHead(status, { "Content-Type": "application/json", ...extraHeaders }).end(JSON.stringify(body));
+}
+
+/**
+ * Handles one HTTP request for the Streamable HTTP transport. Stateless: no
+ * session ID, and a fresh Server + StreamableHTTPServerTransport pair per
+ * request (the pattern the MCP SDK documents for stateless mode), rather
+ * than sharing one Server across concurrent requests.
+ */
+async function handleHttpRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const url = new URL(req.url ?? "/", "http://localhost");
+
+  if (req.method === "GET" && url.pathname === "/health") {
+    res.writeHead(200, { "Content-Type": "text/plain" }).end("OK");
+    return;
   }
-});
 
+  if (url.pathname !== "/mcp") {
+    sendJson(res, 404, { error: "Not found" });
+    return;
+  }
+
+  if (req.method !== "POST") {
+    sendJson(res, 405, { error: "Method not allowed — this server only supports POST /mcp." }, { Allow: "POST" });
+    return;
+  }
+
+  if (!isAuthorized(req)) {
+    sendJson(res, 401, { error: "Unauthorized — missing or invalid bearer token." });
+    return;
+  }
+
+  const requestServer = createMcpServer();
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+
+  try {
+    await requestServer.connect(transport);
+    await transport.handleRequest(req, res);
+    res.on("close", () => {
+      transport.close();
+      requestServer.close();
+    });
+  } catch (error) {
+    console.error("Error handling MCP request:", error);
+    if (!res.headersSent) {
+      sendJson(res, 500, { jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
+    }
+  }
+}
+
+/**
+ * Starts the Streamable HTTP transport on the given port (from
+ * process.env.PORT — hosting platforms set this automatically, so it's
+ * never hardcoded).
+ */
+function startHttpServer(port: number): void {
+  const httpServer = createNodeHttpServer((req, res) => {
+    handleHttpRequest(req, res).catch((error: unknown) => {
+      console.error("Unhandled error in HTTP request listener:", error);
+      if (!res.headersSent) {
+        sendJson(res, 500, { error: "Internal server error" });
+      }
+    });
+  });
+
+  httpServer.listen(port, () => {
+    console.log(`MCP HTTP server listening on port ${port} (POST /mcp, GET /health)`);
+  });
+}
+
+/**
+ * Picks stdio vs HTTP automatically: process.env.PORT set → HTTP (hosted
+ * deployment); unset → stdio (local Claude Code usage via .mcp.json keeps
+ * working unchanged).
+ */
 async function main(): Promise<void> {
+  const port = process.env.PORT;
+
+  if (port !== undefined) {
+    const portNumber = Number(port);
+    if (!Number.isInteger(portNumber) || portNumber <= 0) {
+      throw new Error(`Invalid PORT env var: "${port}" — expected a positive integer.`);
+    }
+    startHttpServer(portNumber);
+    return;
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
 /**
- * Only auto-connect over real stdio when this file is run directly (e.g.
- * `npm run mcp`), not when it's imported — tests import `server` and drive
- * it over an in-memory transport instead.
+ * Only auto-start (stdio or HTTP, per main()) when this file is run directly
+ * (e.g. `npm run mcp` or `npm start`), not when it's imported — tests import
+ * `server` and drive it over an in-memory transport instead.
  *
  * Lower-cased comparison: on Windows, `import.meta.url` and the URL built
  * from `process.argv[1]` can differ only in drive-letter case (`c:` vs
