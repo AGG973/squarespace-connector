@@ -63,59 +63,59 @@
   },
   "examples": [
     {
-      "input": {
-        "modifiedAfter": "2026-01-01T00:00:00.000Z",
-        "modifiedBefore": "2026-08-08T00:00:00.000Z",
-        "fulfillmentStatus": "PENDING"
-      },
+      "description": "CONFIRMED live, 2026-08-16 — the real captured response from an unfiltered GET /orders call, matching fixtures/orders-populated.json byte for byte except customerEmail, which is replaced with a placeholder. This is the same order captured in create-order.schema.json's example, confirmed to match exactly (see connector.yaml's known_limitations).",
+      "input": {},
       "output": {
         "result": [
           {
-            "id": "6813b0c8f4a2b10001f3aa01",
+            "id": "6a81716f0589b404e7529648",
             "orderNumber": "1",
-            "createdOn": "2026-06-14T09:22:41.000Z",
-            "modifiedOn": "2026-06-14T09:22:41.000Z",
+            "createdOn": "2026-08-16T08:14:10Z",
+            "modifiedOn": "2026-08-16T08:14:39.705Z",
+            "channel": "external",
             "testmode": false,
             "customerEmail": "buyer@example.com",
+            "customerId": "6a7afd9c3a715540f23e0a54",
+            "billingAddress": null,
+            "shippingAddress": null,
             "fulfillmentStatus": "PENDING",
-            "billingAddress": {
-              "firstName": "Ada",
-              "lastName": "Lovelace",
-              "address1": "123 Example St",
-              "address2": null,
-              "city": "Brooklyn",
-              "state": "NY",
-              "countryCode": "US",
-              "postalCode": "11201",
-              "phone": "555-0100"
-            },
-            "shippingAddress": {
-              "firstName": "Ada",
-              "lastName": "Lovelace",
-              "address1": "123 Example St",
-              "address2": null,
-              "city": "Brooklyn",
-              "state": "NY",
-              "countryCode": "US",
-              "postalCode": "11201",
-              "phone": "555-0100"
-            },
             "lineItems": [
               {
-                "id": "6813b0c8f4a2b10001f3aa02",
-                "variantId": "627d44e9-3f68-4ea4-a34b-794dcbbbc6db",
-                "sku": "SQ5971216",
+                "id": "6a81716fc8fe4c0001305355",
+                "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+                "sku": "SQ4985207",
+                "weight": 0,
+                "width": 0,
+                "length": 0,
+                "height": 0,
+                "productId": "6a72f2378d7a8a3a29161789",
                 "productName": "Test Product — Canvas Tote Bag",
-                "quantity": 2,
-                "unitPricePaid": { "currency": "USD", "value": "25.00" }
+                "quantity": 1,
+                "unitPricePaid": { "currency": "USD", "value": "20.00" },
+                "variantOptions": [{ "optionName": "Size", "value": "Small" }],
+                "customizations": null,
+                "imageUrl": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+                "lineItemType": "PHYSICAL_PRODUCT"
               }
             ],
-            "subtotal": { "currency": "USD", "value": "50.00" },
-            "shippingTotal": { "currency": "USD", "value": "5.00" },
+            "internalNotes": [],
+            "shippingLines": [],
+            "discountLines": [],
+            "formSubmission": null,
+            "fulfillments": [],
+            "subtotal": { "currency": "USD", "value": "20.00" },
+            "shippingTotal": { "currency": "USD", "value": "0.00" },
             "discountTotal": { "currency": "USD", "value": "0.00" },
-            "taxTotal": { "currency": "USD", "value": "4.44" },
+            "taxTotal": { "currency": "USD", "value": "0.00" },
             "refundedTotal": { "currency": "USD", "value": "0.00" },
-            "grandTotal": { "currency": "USD", "value": "59.44" }
+            "grandTotal": { "currency": "USD", "value": "20.00" },
+            "channelName": "DOO Connector Test",
+            "externalOrderReference": "TEST-CONNECTOR-002",
+            "fulfilledOn": null,
+            "priceTaxInterpretation": "EXCLUSIVE",
+            "paymentState": "PAID",
+            "shippingOptionName": null,
+            "shippingOptionServiceType": null
           }
         ],
         "pagination": {
@@ -126,7 +126,12 @@
       }
     },
     {
-      "input": {},
+      "description": "Illustrates the input shape with all three optional filters combined (a valid combination — none of these three are mutually exclusive with each other). The empty `result`/pagination output itself is real, matching fixtures/orders.json, captured when the store had zero orders — at that point any valid query trivially returned empty, so this exact filter combination was not itself separately exercised against a real match/no-match case.",
+      "input": {
+        "modifiedAfter": "2026-01-01T00:00:00.000Z",
+        "modifiedBefore": "2026-08-08T00:00:00.000Z",
+        "fulfillmentStatus": "PENDING"
+      },
       "output": {
         "result": [],
         "pagination": {

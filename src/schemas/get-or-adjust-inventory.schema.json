@@ -155,7 +155,7 @@
     "adjustInventoryInput": {
       "title": "AdjustInventoryInput",
       "type": "object",
-      "description": "CONFIRMED live, 2026-08-16 — a full incrementOperations/setFiniteOperations round trip against a real variant succeeded and was verified to take effect (see this schema's top-level VERIFICATION STATUS). At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header, supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately.",
+      "description": "CONFIRMED live, 2026-08-16 — a full incrementOperations/setFiniteOperations round trip against a real variant succeeded and was verified to take effect (see this schema's top-level VERIFICATION STATUS). At least one operation array must be non-empty. Squarespace rejects the request without an Idempotency-Key header — CONFIRMED live, 2026-08-17 (400 Bad Request, RFC 7807 problem+json body, \"Required header 'Idempotency-Key' is not present.\"; the omitted-header call had no side effect, verified via get_inventory before/after) — supplied here as `idempotencyKey` — optional on this input: the connector generates a fresh one when omitted, and reuses the caller's when supplied, so a caller can control retries deliberately.",
       "required": ["operation"],
       "additionalProperties": false,
       "anyOf": [

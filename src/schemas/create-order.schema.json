@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/AGG973/squarespace-connector/schemas/create-order.schema.json",
   "title": "squarespace.create_order",
-  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header, and rate-limits it to 100 calls per hour per site. VERIFICATION STATUS: END-TO-END SUCCESS IS CONFIRMED — a real order was successfully created live, 2026-08-16, via a personal Developer API Key. That same live call disproved the earlier belief that order creation was restricted to OAuth/registered Extension apps: the actual blocker was that `subtotal`, previously modeled as optional, is functionally REQUIRED — Squarespace returns 400 INVALID_REQUEST_ERROR.unknown (\"The sum of lineItems.unitPricePaid.value must equal subtotal.value\") when it's omitted, and the order only succeeds once subtotal is present and equal to the sum of lineItems[].unitPricePaid.value. The REQUEST shape otherwise matches Squarespace's official documented CreateOrderRequest/CreateLineItemRequest contract, reconciled 2026-08-10 directly against that authoritative source. Field-level confidence varies: lineItemType \"PHYSICAL_PRODUCT\" is confirmed correct for physical products; for that lineItemType, title is CONFIRMED live, 2026-08-11, to be forbidden (must be null or omitted — \"lineItems.title must be null or omitted\" when lineItemType is PHYSICAL_PRODUCT), correcting the earlier assumption that title was unconditionally required — title's requirement for any OTHER lineItemType value remains UNCONFIRMED, no data yet; shopperFulfillmentNotificationBehavior is a confirmed enum, exactly \"SEND\" or \"SKIP\"; nonSaleUnitPrice's optionality is inferred from its descriptive purpose, not explicitly confirmed; fulfillments' item shape remains unconfirmed (an empty array is the safe default). The output side now reflects the real captured response from the 2026-08-16 order — see fixtures/create-order-response.json.",
+  "description": "Input/output contract for creating an order. POST /orders on the commerce base URL (https://api.squarespace.com/1.0/commerce). SAFETY: per connector.yaml this action is irreversible and requires approval before execution; Squarespace rejects the request outright without an Idempotency-Key header — CONFIRMED live, 2026-08-17 (400 Bad Request, RFC 7807 problem+json body, \"Required header 'Idempotency-Key' is not present.\", validated before the request body itself, tested with a deliberately-invalid body so no order could be created regardless of outcome) — and rate-limits it to 100 calls per hour per site (documented, not independently confirmed against a real 429 — no call in this project has ever triggered one). VERIFICATION STATUS: END-TO-END SUCCESS IS CONFIRMED — a real order was successfully created live, 2026-08-16, via a personal Developer API Key. That same live call disproved the earlier belief that order creation was restricted to OAuth/registered Extension apps: the actual blocker was that `subtotal`, previously modeled as optional, is functionally REQUIRED — Squarespace returns 400 INVALID_REQUEST_ERROR.unknown (\"The sum of lineItems.unitPricePaid.value must equal subtotal.value\") when it's omitted, and the order only succeeds once subtotal is present and equal to the sum of lineItems[].unitPricePaid.value. The REQUEST shape otherwise matches Squarespace's official documented CreateOrderRequest/CreateLineItemRequest contract, reconciled 2026-08-10 directly against that authoritative source. Field-level confidence varies: lineItemType \"PHYSICAL_PRODUCT\" is confirmed correct for physical products; for that lineItemType, title is CONFIRMED live, 2026-08-11, to be forbidden (must be null or omitted — \"lineItems.title must be null or omitted\" when lineItemType is PHYSICAL_PRODUCT), correcting the earlier assumption that title was unconditionally required — title's requirement for any OTHER lineItemType value remains UNCONFIRMED, no data yet; shopperFulfillmentNotificationBehavior is a confirmed enum, exactly \"SEND\" or \"SKIP\"; nonSaleUnitPrice's optionality is inferred from its descriptive purpose, not explicitly confirmed; fulfillments' item shape remains unconfirmed (an empty array is the safe default). The output side now reflects the real captured response from the 2026-08-16 order — see fixtures/create-order-response.json.",
   "type": "object",
   "required": ["input", "output"],
   "properties": {
@@ -122,105 +122,75 @@
   },
   "examples": [
     {
-      "description": "Request shape matches Squarespace's official contract (reconciled 2026-08-10). nonSaleUnitPrice is omitted since its optionality is only inferred, not confirmed. fulfillments is present as [], per the confirmed requirement. The PHYSICAL_PRODUCT line item omits title — confirmed live, 2026-08-11, that a non-null title is rejected in that case. This exact example (with this exact address/discount/shipping/tax combination) has not itself been submitted live, but end-to-end success is confirmed in general — see fixtures/create-order-response.json for a real captured response, and note that `subtotal` is now required, not optional as this example's own presence of it might otherwise suggest.",
+      "description": "CONFIRMED live, 2026-08-16 — this is the real request that produced the real captured response below (see fixtures/create-order-response.json for the untrimmed, byte-identical capture). customerEmail replaced with a placeholder; every other field is verbatim, including the real order id, variant, and idempotencyKey Squarespace echoed back.",
       "input": {
-        "idempotencyKey": "9f8e7d6c-5b4a-4321-9876-543210fedcba",
-        "channelName": "doo-connector",
-        "createdOn": "2026-08-10T00:00:00.000Z",
-        "externalOrderReference": "DOO-2026-000117",
-        "fulfillments": [],
+        "channelName": "DOO Connector Test",
+        "externalOrderReference": "TEST-CONNECTOR-002",
+        "createdOn": "2026-08-16T08:14:10Z",
         "priceTaxInterpretation": "EXCLUSIVE",
-        "customerEmail": "buyer@example.com",
-        "billingAddress": {
-          "firstName": "Ada",
-          "lastName": "Lovelace",
-          "address1": "123 Example St",
-          "address2": null,
-          "city": "Brooklyn",
-          "state": "NY",
-          "countryCode": "US",
-          "postalCode": "11201",
-          "phone": "555-0100"
-        },
-        "shippingAddress": {
-          "firstName": "Ada",
-          "lastName": "Lovelace",
-          "address1": "123 Example St",
-          "address2": null,
-          "city": "Brooklyn",
-          "state": "NY",
-          "countryCode": "US",
-          "postalCode": "11201",
-          "phone": "555-0100"
-        },
-        "inventoryBehavior": "DECREMENT",
+        "fulfillments": [],
         "lineItems": [
           {
             "lineItemType": "PHYSICAL_PRODUCT",
             "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
             "quantity": 1,
-            "unitPricePaid": { "currency": "USD", "value": "25.00" }
+            "unitPricePaid": { "currency": "USD", "value": "20.00" }
           }
         ],
-        "shippingLines": [
-          {
-            "method": "Standard Shipping",
-            "amount": { "currency": "USD", "value": "5.00" }
-          }
-        ],
-        "subtotal": { "currency": "USD", "value": "25.00" },
-        "shippingTotal": { "currency": "USD", "value": "5.00" },
-        "discountTotal": { "currency": "USD", "value": "0.00" },
-        "taxTotal": { "currency": "USD", "value": "2.22" },
-        "grandTotal": { "currency": "USD", "value": "32.22" },
-        "fulfillmentStatus": "PENDING"
+        "subtotal": { "currency": "USD", "value": "20.00" },
+        "grandTotal": { "currency": "USD", "value": "20.00" },
+        "customerEmail": "buyer@example.com"
       },
       "output": {
-        "id": "00000000-0000-0000-0000-000000000000",
+        "id": "6a81716f0589b404e7529648",
         "orderNumber": "1",
-        "createdOn": "2026-01-01T00:00:00.000Z",
-        "modifiedOn": "2026-01-01T00:00:00.000Z",
-        "testmode": true,
-        "customerEmail": "placeholder@example.com",
-        "billingAddress": {
-          "firstName": "Placeholder",
-          "lastName": "Customer",
-          "address1": "123 Example St",
-          "address2": null,
-          "city": "Brooklyn",
-          "state": "NY",
-          "countryCode": "US",
-          "postalCode": "11201",
-          "phone": "555-0100"
-        },
-        "shippingAddress": {
-          "firstName": "Placeholder",
-          "lastName": "Customer",
-          "address1": "123 Example St",
-          "address2": null,
-          "city": "Brooklyn",
-          "state": "NY",
-          "countryCode": "US",
-          "postalCode": "11201",
-          "phone": "555-0100"
-        },
+        "createdOn": "2026-08-16T08:14:10Z",
+        "modifiedOn": "2026-08-16T08:14:39.705Z",
+        "channel": "external",
+        "testmode": false,
+        "customerEmail": "buyer@example.com",
+        "customerId": "6a7afd9c3a715540f23e0a54",
+        "billingAddress": null,
+        "shippingAddress": null,
         "fulfillmentStatus": "PENDING",
         "lineItems": [
           {
-            "id": "00000000-0000-0000-0000-000000000001",
+            "id": "6a81716fc8fe4c0001305355",
             "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
             "sku": "SQ4985207",
+            "weight": 0,
+            "width": 0,
+            "length": 0,
+            "height": 0,
+            "productId": "6a72f2378d7a8a3a29161789",
             "productName": "Test Product — Canvas Tote Bag",
             "quantity": 1,
-            "unitPricePaid": { "currency": "USD", "value": "25.00" }
+            "unitPricePaid": { "currency": "USD", "value": "20.00" },
+            "variantOptions": [{ "optionName": "Size", "value": "Small" }],
+            "customizations": null,
+            "imageUrl": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+            "lineItemType": "PHYSICAL_PRODUCT"
           }
         ],
-        "subtotal": { "currency": "USD", "value": "25.00" },
-        "shippingTotal": { "currency": "USD", "value": "5.00" },
+        "internalNotes": [],
+        "shippingLines": [],
+        "discountLines": [],
+        "formSubmission": null,
+        "fulfillments": [],
+        "subtotal": { "currency": "USD", "value": "20.00" },
+        "shippingTotal": { "currency": "USD", "value": "0.00" },
         "discountTotal": { "currency": "USD", "value": "0.00" },
-        "taxTotal": { "currency": "USD", "value": "2.22" },
+        "taxTotal": { "currency": "USD", "value": "0.00" },
         "refundedTotal": { "currency": "USD", "value": "0.00" },
-        "grandTotal": { "currency": "USD", "value": "32.22" }
+        "grandTotal": { "currency": "USD", "value": "20.00" },
+        "channelName": "DOO Connector Test",
+        "externalOrderReference": "TEST-CONNECTOR-002",
+        "fulfilledOn": null,
+        "priceTaxInterpretation": "EXCLUSIVE",
+        "paymentState": "PAID",
+        "shippingOptionName": null,
+        "shippingOptionServiceType": null,
+        "idempotencyKey": "53cbf878-2dcc-4b5d-930f-ab5cf8b3f65d"
       }
     }
   ],
