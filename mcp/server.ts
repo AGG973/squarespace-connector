@@ -36,10 +36,22 @@ const SCHEMAS_DIR = fileURLToPath(new URL("../src/schemas/", import.meta.url));
  * folds in the document's `$defs` so any internal `$ref`s (e.g.
  * list-orders' fulfillmentStatus enum) still resolve once lifted out of
  * their parent document.
+ *
+ * Also folds in the schema document's top-level `description` — the
+ * endpoint-wide contract/verification-status prose (confirmed/unconfirmed
+ * findings, request-shape notes, etc.), a different and usually much larger
+ * field than `properties.input.description` (which is narrower, just about
+ * the input fields). Checked across all 5 schema files, not just
+ * create-order's: every one has substantial top-level description content
+ * (721-2374 characters) that was previously silently invisible via MCP,
+ * since only `properties.input.description` ever made it into the tool
+ * schema returned here. MCP's Tool.inputSchema only has room for one
+ * description string, so the two are combined rather than dropping either.
  */
 function loadInputSchema(fileName: string): Tool["inputSchema"] {
   const schema = JSON.parse(readFileSync(`${SCHEMAS_DIR}${fileName}`, "utf8")) as {
-    properties?: { input?: Record<string, unknown> };
+    description?: string;
+    properties?: { input?: Record<string, unknown> & { description?: string } };
     $defs?: Record<string, unknown>;
   };
 
@@ -48,7 +60,18 @@ function loadInputSchema(fileName: string): Tool["inputSchema"] {
     throw new Error(`${fileName}: expected a properties.input schema, found none.`);
   }
 
-  const withDefs = schema.$defs ? { ...inputSchema, $defs: schema.$defs } : inputSchema;
+  const topLevelDescription = schema.description;
+  const inputDescription = inputSchema.description;
+  const combinedDescription =
+    topLevelDescription && inputDescription
+      ? `${topLevelDescription}\n\nINPUT NOTES: ${inputDescription}`
+      : (topLevelDescription ?? inputDescription);
+
+  const withDescription = combinedDescription
+    ? { ...inputSchema, description: combinedDescription }
+    : inputSchema;
+
+  const withDefs = schema.$defs ? { ...withDescription, $defs: schema.$defs } : withDescription;
 
   // MCP's Tool.inputSchema requires a literal `type: "object"`. Most of our
   // schemas declare it directly on `input`, but get-or-adjust-inventory's is
