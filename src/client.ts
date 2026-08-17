@@ -7,6 +7,7 @@
  * `src/errors/normalize.ts`) before being thrown.
  */
 
+import { buildAuthHeader } from "./auth/index.ts";
 import { normalizeError, type NormalizedError } from "./errors/normalize.ts";
 
 /** Commerce API — products, orders, inventory. */
@@ -107,7 +108,7 @@ export async function squarespaceRequest<T = unknown>(
   const init: RequestInit = {
     method,
     headers: {
-      Authorization: `Bearer ${process.env.SQUARESPACE_API_KEY}`,
+      ...buildAuthHeader(process.env.SQUARESPACE_API_KEY),
       "User-Agent": USER_AGENT,
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       ...headers,

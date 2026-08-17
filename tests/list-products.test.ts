@@ -156,6 +156,15 @@ describe("listProducts", () => {
     expect(mockRequest).toHaveBeenCalledWith("/products?cursor=abc123");
   });
 
+  it("allows cursor combined with limit — confirmed live, 2026-08-16, the previous cursor-exclusivity assumption was disproven", async () => {
+    mockRequest.mockResolvedValue(productsResponse);
+
+    await listProducts({ cursor: "abc123", limit: 5 });
+
+    const expectedQuery = new URLSearchParams({ cursor: "abc123", limit: "5" }).toString();
+    expect(mockRequest).toHaveBeenCalledWith(`/products?${expectedQuery}`);
+  });
+
   it("defaults pagination when the last page omits it", async () => {
     mockRequest.mockResolvedValue({
       products: [],

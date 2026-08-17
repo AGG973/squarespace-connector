@@ -25,8 +25,10 @@ interface ListProductsResponse {
 /**
  * Lists products from the store catalog (squarespace.list_products).
  *
- * Note: Squarespace's cursor pagination is exclusive — when `cursor` is set the
- * API rejects other query params, so callers should page with `cursor` alone.
+ * No client-side cursor/limit validation here: this endpoint was previously
+ * assumed to reject cursor combined with any other parameter, but that
+ * assumption is CONFIRMED DISPROVEN live, 2026-08-16 — cursor + limit
+ * succeeds (see src/schemas/list-products.schema.json and connector.yaml).
  */
 export async function listProducts(
   input: ListProductsInput = {},

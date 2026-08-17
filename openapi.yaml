@@ -18,10 +18,8 @@ paths:
     get:
       operationId: listProducts
       summary: List products in the store catalog.
-      description: List products in the store catalog. Cross-field constraints on this input (e.g. mutually exclusive parameters) are defined in the full JSON Schema referenced below as x-full-input-schema (components.schemas.ListProductsInput) and are not fully expressible as independent OpenAPI parameters here — validate against that schema for authoritative behavior.
+      description: List products in the store catalog.
       x-connector-action-id: squarespace.list_products
-      x-full-input-schema:
-        $ref: "#/components/schemas/ListProductsInput"
       parameters:
         - name: cursor
           in: query
@@ -29,16 +27,16 @@ paths:
           schema:
             type: string
             minLength: 1
-            description: Opaque cursor from a previous response's pagination.nextPageCursor.
-          description: Opaque cursor from a previous response's pagination.nextPageCursor.
+            description: Opaque cursor from a previous response's pagination.nextPageCursor. CONFIRMED live, 2026-08-16, to combine successfully with `limit` — see this schema's top-level input description.
+          description: Opaque cursor from a previous response's pagination.nextPageCursor. CONFIRMED live, 2026-08-16, to combine successfully with `limit` — see this schema's top-level input description.
         - name: limit
           in: query
           required: false
           schema:
             type: integer
             minimum: 1
-            description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
-          description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
+            description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs. Also CONFIRMED live, 2026-08-16, to combine successfully with `cursor` — no exclusivity restriction between the two.
+          description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs. Also CONFIRMED live, 2026-08-16, to combine successfully with `cursor` — no exclusivity restriction between the two.
           example: 1
       responses:
         "200":
@@ -149,6 +147,8 @@ paths:
           schema:
             type: integer
             minimum: 1
+            description: "CONFIRMED live, 2026-08-16 — limit:5 against a 51-item inventory returned the same 51 records as no limit at all: byte-identical response, same records, same cursor, hasNextPage:true both times. Same pattern as list_products' confirmed `limit` behavior — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Now confirmed across two separate endpoints (products and inventory), suggesting this may be general Squarespace API behavior rather than something specific to one endpoint. Don't rely on `limit` to control page size below 50; use cursor-based pagination to page through larger inventories."
+          description: "CONFIRMED live, 2026-08-16 — limit:5 against a 51-item inventory returned the same 51 records as no limit at all: byte-identical response, same records, same cursor, hasNextPage:true both times. Same pattern as list_products' confirmed `limit` behavior — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Now confirmed across two separate endpoints (products and inventory), suggesting this may be general Squarespace API behavior rather than something specific to one endpoint. Don't rely on `limit` to control page size below 50; use cursor-based pagination to page through larger inventories."
           example: 3
       responses:
         "200":
@@ -963,24 +963,6 @@ components:
             - object
             - "null"
           description: "UNVERIFIED when non-null — null on every captured product (all 4 are type PHYSICAL). Presumably populated for type: DIGITAL; shape unconfirmed."
-    ListProductsInput:
-      title: ListProductsInput
-      type: object
-      description: "All fields optional. Squarespace cursor pagination is exclusive: when `cursor` is supplied it must be the only parameter, which `dependentSchemas` enforces here. NOTE: src/actions/list-products.ts does not yet enforce that rule."
-      additionalProperties: false
-      properties:
-        cursor:
-          type: string
-          minLength: 1
-          description: Opaque cursor from a previous response's pagination.nextPageCursor.
-        limit:
-          type: integer
-          minimum: 1
-          description: CONFIRMED, 2026-08-16, via three live data points — limit:2 on a 4-product catalog → ignored, all 4 products returned, hasNextPage:false; limit:3 on a 10-product catalog → ignored, all 10 products returned, hasNextPage:false; no limit specified on a 51-product catalog → Squarespace applied its own default page size of 50, hasNextPage:true, with a real, usable nextPageCursor returned. Conclusion — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Pagination itself works correctly once the catalog exceeds that default. Don't rely on `limit` to control page size below 50; use cursor-based pagination (confirmed working) to page through larger catalogs.
-      dependentSchemas:
-        cursor:
-          maxProperties: 1
-          description: When paging by cursor, no other query parameters may be sent.
     ListProductsOutput:
       title: ListProductsResult
       type: object
@@ -1055,6 +1037,7 @@ components:
         limit:
           type: integer
           minimum: 1
+          description: "CONFIRMED live, 2026-08-16 — limit:5 against a 51-item inventory returned the same 51 records as no limit at all: byte-identical response, same records, same cursor, hasNextPage:true both times. Same pattern as list_products' confirmed `limit` behavior — this parameter does not reduce Squarespace's page size below its own ~50 default; a smaller requested value is silently ignored. Now confirmed across two separate endpoints (products and inventory), suggesting this may be general Squarespace API behavior rather than something specific to one endpoint. Don't rely on `limit` to control page size below 50; use cursor-based pagination to page through larger inventories."
       dependentSchemas:
         cursor:
           maxProperties: 2
