@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/get-product.schema.json",
+  "title": "squarespace.get_product",
+  "description": "Input/output contract for retrieving a single product by id. GET /products/{id} on the commerce base URL (https://api.squarespace.com/1.0/commerce). This is an 8th action, added beyond the 5 originally scoped in connector.yaml plus list_contacts and get_order, once those seven were complete. VERIFICATION STATUS: the product OBJECT SHAPE ($defs.product below) is already CONFIRMED — duplicated verbatim from list-products.schema.json's identical $defs.product, live-verified against a real GET /products response (fixtures/products.json, 4 products, all type PHYSICAL). What is NOT confirmed is this endpoint's own GET-by-id request/response pattern: only GET /products (list_products) has ever been called live against this API — GET /products/{id} has not. Unverified specifically: whether Squarespace exposes this endpoint at all, what it returns for a nonexistent id, and whether the response is wrapped in a top-level key (the way get_contact's GET-by-id turned out to be — `{ contact: {...} }`, a correction from an earlier flat placeholder model) or returned flat (the way create_order's single-order response is, on the same commerce API as this endpoint). This schema models the output as FLAT (`$ref: #/$defs/product` directly, no wrapper) by analogy to create_order's confirmed flat response — but that is an assumption carried over from a sibling endpoint on the same base URL, not a live finding, and get_contact is direct precedent in this project for that kind of assumption turning out wrong. Needs live verification before this action can be trusted in production — see connector.yaml's known_limitations.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "GetProductInput",
+      "type": "object",
+      "description": "Retrieval is by product id, appended to the commerce base as GET /products/{id}. Same structural note as get-order.schema.json: the commerce base URL does not already end in /products, so no segment-doubling concern exists the way it did for get_contact's resolveUrl() dedup — but whether Squarespace's API actually serves this path at all is UNCONFIRMED; it has never been called live.",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Product identifier, e.g. the `id` field on a list_products response (real observed ids look like \"6a72f2378d7a8a3a29161789\"). No format is enforced beyond non-empty."
+        }
+      }
+    },
+    "output": {
+      "title": "GetProductResult",
+      "$ref": "#/$defs/product",
+      "description": "UNCONFIRMED whether this response is wrapped in a top-level key or flat — modeled here as flat by analogy to create_order's confirmed response shape on the same commerce API. See this schema's top-level VERIFICATION STATUS."
+    }
+  },
+  "examples": [
+    {
+      "description": "ILLUSTRATIVE, not a live capture through this endpoint — this endpoint has never itself been called. The product object below is the real, confirmed $defs.product shape (verbatim from list-products.schema.json's live-captured example, from fixtures/products.json), shown here under the flat-output assumption this schema currently models. If live testing finds the real response wrapped in a key instead, this example and the output schema both need updating.",
+      "input": { "id": "6a72f2378d7a8a3a29161789" },
+      "output": {
+        "id": "6a72f2378d7a8a3a29161789",
+        "type": "PHYSICAL",
+        "storePageId": "6a72f2207b60d851f2d2f110",
+        "name": "Test Product — Canvas Tote Bag",
+        "description": "<p style=\"white-space:pre-wrap;\" data-rte-preserve-empty=\"true\">Sample product created for Squarespace connector testing.</p>",
+        "url": "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/test-product-canvas-tote-bag",
+        "urlSlug": "p/test-product-canvas-tote-bag",
+        "images": [
+          {
+            "id": "6a72f40a98f72327f79ad890",
+            "altText": "tote bag.jpg",
+            "orderIndex": 0,
+            "url": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+            "originalSize": { "width": 1200, "height": 1600 },
+            "availableFormats": []
+          }
+        ],
+        "tags": [],
+        "isVisible": false,
+        "variantAttributes": ["Size"],
+        "variants": [
+          {
+            "id": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "sku": "SQ4985207",
+            "pricing": {
+              "basePrice": { "currency": "USD", "value": "20.00" },
+              "salePrice": { "currency": "USD", "value": "0.00" },
+              "onSale": false
+            },
+            "stock": { "quantity": 10, "unlimited": false },
+            "attributes": { "Size": "Small" },
+            "shippingMeasurements": {
+              "weight": { "unit": "POUND", "value": 0 },
+              "dimensions": { "unit": "INCH", "length": 0, "width": 0, "height": 0 }
+            },
+            "image": null
+          }
+        ],
+        "seoOptions": null,
+        "createdOn": "2026-08-05T08:20:07.834Z",
+        "modifiedOn": "2026-08-05T08:27:55.973Z",
+        "pricing": null,
+        "digitalGood": null
+      }
+    }
+  ],
+  "$defs": {
+    "money": {
+      "title": "Money",
+      "type": "object",
+      "description": "Monetary amount. Squarespace returns the value as a decimal string, not a number. Duplicated from list-products.schema.json's identical $def.",
+      "required": ["currency", "value"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "ISO 4217 currency code." },
+        "value": { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" }
+      }
+    },
+    "image": {
+      "title": "ProductImage",
+      "type": "object",
+      "description": "Confirmed against fixtures/products.json. Duplicated from list-products.schema.json's identical $def.",
+      "required": ["id", "altText", "orderIndex", "url", "originalSize", "availableFormats"],
+      "properties": {
+        "id": { "type": "string" },
+        "altText": { "type": "string", "description": "Empty string when unset, not null." },
+        "orderIndex": { "type": "integer", "minimum": 0 },
+        "url": { "type": "string", "format": "uri" },
+        "originalSize": {
+          "type": "object",
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 0 },
+            "height": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "availableFormats": {
+          "type": "array",
+          "description": "Available resized widths, e.g. \"100w\". Can be empty.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "variant": {
+      "title": "ProductVariant",
+      "type": "object",
+      "description": "Confirmed against fixtures/products.json (18 variants across 4 products). Duplicated from list-products.schema.json's identical $def.",
+      "required": ["id", "sku", "pricing", "stock", "attributes", "shippingMeasurements", "image"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "sku": { "type": "string" },
+        "attributes": {
+          "type": "object",
+          "description": "Keys correspond to the product's variantAttributes, e.g. { \"Size\": \"Small\" }.",
+          "additionalProperties": { "type": "string" }
+        },
+        "pricing": {
+          "type": "object",
+          "required": ["basePrice", "salePrice", "onSale"],
+          "properties": {
+            "basePrice": { "$ref": "#/$defs/money" },
+            "salePrice": { "$ref": "#/$defs/money" },
+            "onSale": { "type": "boolean" }
+          }
+        },
+        "stock": {
+          "type": "object",
+          "required": ["quantity", "unlimited"],
+          "properties": {
+            "quantity": { "type": "integer", "minimum": 0 },
+            "unlimited": { "type": "boolean" }
+          }
+        },
+        "shippingMeasurements": {
+          "type": "object",
+          "description": "Confirmed against fixtures/products.json. All-zero weight/dimensions observed on every sampled variant — plausible defaults rather than confirmed non-zero behavior.",
+          "required": ["weight", "dimensions"],
+          "properties": {
+            "weight": {
+              "type": "object",
+              "required": ["unit", "value"],
+              "properties": {
+                "unit": { "type": "string", "description": "Only \"POUND\" observed; other units unverified." },
+                "value": { "type": "number", "minimum": 0 }
+              }
+            },
+            "dimensions": {
+              "type": "object",
+              "required": ["unit", "length", "width", "height"],
+              "properties": {
+                "unit": { "type": "string", "description": "Only \"INCH\" observed; other units unverified." },
+                "length": { "type": "number", "minimum": 0 },
+                "width": { "type": "number", "minimum": 0 },
+                "height": { "type": "number", "minimum": 0 }
+              }
+            }
+          }
+        },
+        "image": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — every variant captured in fixtures/products.json has image: null. Presumably a per-variant override of the product's images[], shape unconfirmed."
+        }
+      }
+    },
+    "product": {
+      "title": "Product",
+      "type": "object",
+      "description": "Confirmed against fixtures/products.json, a real GET /products response (4 products, all type PHYSICAL). Duplicated verbatim from list-products.schema.json's identical $defs.product. NOT itself confirmed via get_product — see this schema's top-level VERIFICATION STATUS for what specifically remains unverified about this endpoint.",
+      "required": [
+        "id",
+        "type",
+        "storePageId",
+        "name",
+        "description",
+        "url",
+        "urlSlug",
+        "images",
+        "tags",
+        "isVisible",
+        "variantAttributes",
+        "variants",
+        "seoOptions",
+        "createdOn",
+        "modifiedOn",
+        "pricing",
+        "digitalGood"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["PHYSICAL", "DIGITAL", "SERVICE", "GIFT_CARD"],
+          "description": "PHYSICAL confirmed against fixtures/products.json. DIGITAL/SERVICE/GIFT_CARD are modelled from Squarespace's product types and not yet verified against a live response."
+        },
+        "storePageId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string", "description": "HTML string." },
+        "url": { "type": "string", "format": "uri" },
+        "urlSlug": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "isVisible": { "type": "boolean" },
+        "variantAttributes": { "type": "array", "items": { "type": "string" } },
+        "variants": { "type": "array", "items": { "$ref": "#/$defs/variant" } },
+        "images": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/image" }
+        },
+        "seoOptions": {
+          "type": ["object", "null"],
+          "description": "null observed on one product, { title: \"\", description: \"\" } on two others — both confirmed shapes.",
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" }
+          }
+        },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "modifiedOn": { "type": "string", "format": "date-time" },
+        "pricing": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — null on every captured product (all 4 have per-variant pricing instead). Presumably populated for products without variants; shape unconfirmed."
+        },
+        "digitalGood": {
+          "type": ["object", "null"],
+          "description": "UNVERIFIED when non-null — null on every captured product (all 4 are type PHYSICAL). Presumably populated for type: DIGITAL; shape unconfirmed."
+        }
+      }
+    }
+  }
+}

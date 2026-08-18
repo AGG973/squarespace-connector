@@ -143,6 +143,26 @@ const TOOLS: Tool[] = [
       "cursor rules.",
     inputSchema: loadInputSchema("list-contacts.schema.json"),
   },
+  {
+    name: "squarespace.get_order",
+    description:
+      "Retrieve a single order by id. GET /orders/{id} on the commerce base. The order OBJECT " +
+      "SHAPE is CONFIRMED, reused from create_order's and list_orders' live testing. This " +
+      "endpoint's own GET-by-id request/response pattern has NOT itself been tested live — " +
+      "whether it exists, and whether its response is wrapped in a key (like get_contact's " +
+      "turned out to be) or flat (as modeled here, by analogy to create_order), is unconfirmed.",
+    inputSchema: loadInputSchema("get-order.schema.json"),
+  },
+  {
+    name: "squarespace.get_product",
+    description:
+      "Retrieve a single product by id. GET /products/{id} on the commerce base. The product " +
+      "OBJECT SHAPE is CONFIRMED, reused from list_products' live testing. This endpoint's own " +
+      "GET-by-id request/response pattern has NOT itself been tested live — whether it exists, " +
+      "and whether its response is wrapped in a key (like get_contact's turned out to be) or " +
+      "flat (as modeled here, by analogy to create_order), is unconfirmed.",
+    inputSchema: loadInputSchema("get-product.schema.json"),
+  },
 ];
 
 /** Pulls `{ code, message, ... }`-shaped details out of any thrown value for error content. */
@@ -181,7 +201,9 @@ async function callTool(
     name === "squarespace.get_or_adjust_inventory" ||
     name === "squarespace.create_order" ||
     name === "squarespace.get_contact" ||
-    name === "squarespace.list_contacts"
+    name === "squarespace.list_contacts" ||
+    name === "squarespace.get_order" ||
+    name === "squarespace.get_product"
   ) {
     const output = await execute({ actionId: name, input: args });
     return textResult(output);

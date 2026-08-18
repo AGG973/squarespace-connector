@@ -15,10 +15,10 @@ beforeEach(() => {
 });
 
 describe("listActions", () => {
-  it("returns all 6 declared action IDs, each flagged as implemented", () => {
+  it("returns all 8 declared action IDs, each flagged as implemented", () => {
     const actions = listActions();
 
-    expect(actions).toHaveLength(6);
+    expect(actions).toHaveLength(8);
     expect(actions.map((a) => a.actionId).sort()).toEqual([...ACTION_IDS].sort());
     expect(actions.every((a) => a.implemented)).toBe(true);
   });

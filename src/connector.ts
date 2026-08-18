@@ -8,6 +8,8 @@ import {
 import { createOrder, type CreateOrderInput } from "./actions/create-order.ts";
 import { getContact, type GetContactInput } from "./actions/get-contact.ts";
 import { listContacts, type ListContactsInput } from "./actions/list-contacts.ts";
+import { getOrder, type GetOrderInput } from "./actions/get-order.ts";
+import { getProduct, type GetProductInput } from "./actions/get-product.ts";
 
 export type TestConnectionResult =
   | { success: true }
@@ -31,8 +33,9 @@ export async function testConnection(): Promise<TestConnectionResult> {
 }
 
 /**
- * The 6 action IDs declared in connector.yaml — the 5 originally scoped,
- * plus list_contacts, added beyond scope once those five were complete.
+ * The 8 action IDs declared in connector.yaml — the 5 originally scoped,
+ * plus list_contacts, get_order, and get_product, added beyond scope once
+ * those five were complete.
  */
 export const ACTION_IDS = [
   "squarespace.list_products",
@@ -41,6 +44,8 @@ export const ACTION_IDS = [
   "squarespace.create_order",
   "squarespace.get_contact",
   "squarespace.list_contacts",
+  "squarespace.get_order",
+  "squarespace.get_product",
 ] as const;
 
 export type ActionId = (typeof ACTION_IDS)[number];
@@ -53,6 +58,8 @@ const IMPLEMENTED_ACTION_IDS: ReadonlySet<ActionId> = new Set([
   "squarespace.create_order",
   "squarespace.get_contact",
   "squarespace.list_contacts",
+  "squarespace.get_order",
+  "squarespace.get_product",
 ]);
 
 export interface ActionListing {
@@ -60,7 +67,7 @@ export interface ActionListing {
   implemented: boolean;
 }
 
-/** Lists all 5 connector.yaml actions, flagging which are implemented so far. */
+/** Lists all 8 connector.yaml actions, flagging which are implemented so far. */
 export function listActions(): ActionListing[] {
   return ACTION_IDS.map((actionId) => ({
     actionId,
@@ -89,7 +96,7 @@ export interface ExecuteRequest {
  * DooConnector `execute` entry point).
  *
  * @throws {ConnectorError} code "UNKNOWN_ACTION" for an actionId
- * connector.yaml doesn't declare at all. All 6 declared actions are now
+ * connector.yaml doesn't declare at all. All 8 declared actions are now
  * wired up — none currently throw "NOT_IMPLEMENTED".
  */
 export async function execute({ actionId, input }: ExecuteRequest): Promise<unknown> {
@@ -106,6 +113,10 @@ export async function execute({ actionId, input }: ExecuteRequest): Promise<unkn
       return getContact(input as GetContactInput);
     case "squarespace.list_contacts":
       return listContacts(input as ListContactsInput | undefined);
+    case "squarespace.get_order":
+      return getOrder(input as GetOrderInput);
+    case "squarespace.get_product":
+      return getProduct(input as GetProductInput);
     default:
       throw new ConnectorError("UNKNOWN_ACTION", `Unknown actionId: "${actionId}"`);
   }

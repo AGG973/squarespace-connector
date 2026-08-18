@@ -25,7 +25,7 @@ scopes:
     access: read
 
 capabilities:
-  - All 5 originally-scoped actions are implemented and live-verified against the real API (list_products, get_or_adjust_inventory, list_orders, create_order, get_contact) — see known_limitations for the evidence behind each. A 6th action, list_contacts, was added beyond scope once those five were complete — implemented and unit-tested, reusing the response envelope and per-contact shape already confirmed via get_contact's live testing, but NOT itself live-verified: this endpoint's own cursor behavior has not been exercised against the real API — see known_limitations.
+  - All 5 originally-scoped actions are implemented and live-verified against the real API (list_products, get_or_adjust_inventory, list_orders, create_order, get_contact) — see known_limitations for the evidence behind each. A 6th action, list_contacts, was added beyond scope once those five were complete — implemented and unit-tested, reusing the response envelope and per-contact shape already confirmed via get_contact's live testing, but NOT itself live-verified: this endpoint's own cursor behavior has not been exercised against the real API — see known_limitations. Two more actions, get_order and get_product, were added beyond scope after that — implemented and unit-tested, reusing the already-confirmed order/product object shapes (create-order.schema.json/list-orders.schema.json's $defs.order and list-products.schema.json's $defs.product), but their GET-by-id URL pattern and response envelope (wrapped, like get_contact's turned out to be, vs flat, like create_order's) are NOT live-verified — see known_limitations.
   - MCP server with two transports — stdio for local use (mcp/server.ts, `npm run mcp`) and Streamable HTTP for hosted deployment (`npm start`), guarded by a separate bearer token (MCP_AUTH_TOKEN) from the Squarespace API key.
   - Errors are normalized into a consistent { code, message, httpStatus, requestId, retryable } shape across every action, via a single choke point (squarespaceRequest -> normalizeError) — see error_handling below.
   - Cursor-based pagination is surfaced in the output of every list/read action (list_products, list_orders, get_inventory).
@@ -138,6 +138,52 @@ actions:
         UNCONFIRMED — modeled by analogy to list_products/list_orders, not
         tested against this endpoint.
 
+  - id: squarespace.get_order
+    description: >
+      Retrieve a single order by id. GET /orders/{id} on the commerce base
+      URL (https://api.squarespace.com/1.0/commerce). The response OBJECT
+      SHAPE is already confirmed — it matches create_order's and
+      list_orders' captured $defs.order exactly, both live-verified
+      2026-08-16 (see fixtures/create-order-response.json,
+      fixtures/orders-populated.json). What is NOT confirmed is this
+      specific GET-by-id request/response pattern itself: only the /orders
+      collection endpoint (list_orders, GET) and the /orders creation
+      endpoint (create_order, POST) have ever been called live — GET
+      /orders/{id} has not. Unverified specifically: (1) whether Squarespace
+      exposes this endpoint at all and what it returns for a nonexistent id;
+      (2) whether the response is wrapped in a top-level key, the way
+      get_contact's GET-by-id turned out to be (`{ contact: {...} }`), or
+      returned flat, the way create_order's response is on this same
+      commerce API — modeled here as flat by analogy to create_order/
+      list_orders, but that is an assumption, not a finding. Needs the same
+      kind of live verification get_contact needed for its resolveUrl dedup
+      logic before this can be trusted in production.
+    kind: read
+    request:
+      method: GET
+      base_url: commerce
+      path: /orders/{id}
+
+  - id: squarespace.get_product
+    description: >
+      Retrieve a single product by id. GET /products/{id} on the commerce
+      base URL (https://api.squarespace.com/1.0/commerce). The response
+      OBJECT SHAPE is already confirmed — it matches list_products'
+      captured $defs.product exactly, live-verified against
+      fixtures/products.json. What is NOT confirmed is this specific
+      GET-by-id request/response pattern itself: only the /products
+      collection endpoint (list_products, GET) has ever been called live —
+      GET /products/{id} has not. Same caveats as get_order: whether this
+      endpoint exists at all, what a nonexistent id returns, and whether the
+      response is wrapped in a key or flat (modeled here as flat, by
+      analogy — not confirmed) all need live verification before this can
+      be trusted in production.
+    kind: read
+    request:
+      method: GET
+      base_url: commerce
+      path: /products/{id}
+
 error_handling:
   notes: >
     CONFIRMED live, 2026-08-17 — Squarespace uses at least two distinct
@@ -199,3 +245,4 @@ known_limitations:
   - Rate-limit metadata — CONFIRMED live, 2026-08-17, that Squarespace's API exposes none in response headers. A real GET /products response's full header set was inspected (age, cache-control, content-encoding, content-type, date, expires, pragma, server, set-cookie, strict-transport-security, transfer-encoding, vary, x-content-type-options, x-contextid, x-frame-options, x-xss-protection) — no `X-RateLimit-*`, no `Retry-After`, nothing rate-limit-related at all. The only signal Squarespace provides is the 429 status code itself, which this connector already handles (client.ts's fixed 60s cooldown-and-retry). This is a platform limitation, not a gap in this connector's implementation — there is no metadata to surface.
   - list_products' cursor-exclusivity claim ("cursor must be the only parameter") — previously unconfirmed, carried unchanged since this schema's first commit — is now CONFIRMED DISPROVEN live, 2026-08-16. cursor + limit:5 was tested directly against the API, using a real cursor from a 51-product catalog, and succeeded — returned the remaining 1 product from that page, hasNextPage:false, no rejection. The schema's `dependentSchemas` constraint and the matching client-side check in list-products.ts's assertValidInput have both been removed; `limit` is the only other field this input has today, and it's now confirmed to combine safely with cursor. Worth flagging as a pattern, not just a one-off — this connector has now had a "cursor pagination is exclusive" assumption disproven for `limit` on two separate endpoints (list_orders, confirmed via its four-combination test; and list_products, here), and separately had the opposite kind of surprise on list_orders (fulfillmentStatus was assumed compatible with cursor but confirmed excluded). Given that history, treat any future cursor-exclusivity claim in this connector — for any endpoint, for any parameter — as untrustworthy until tested live; don't assume it from general Squarespace API conventions, and don't assume one endpoint's confirmed cursor rule applies to another.
   - list_contacts (added 2026-08-18, beyond the original 5 actions) reuses get_contact's already-confirmed envelope (top-level `contacts` key + `pagination`, per src/schemas/get-contact.schema.json's contactListResult $def) and per-contact shape, and is verified against the one real data point this endpoint itself has produced — a real, empty GET /contacts response (fixtures/contacts.json). What is NOT confirmed is this endpoint's own request-side behavior — `cursor` is modeled by analogy to list_products/list_orders, but per the pattern noted directly above, no two endpoints in this connector have shared the same cursor-combination rules without individual live testing — don't assume list_contacts' cursor behaves like either until it's actually tested against a populated contacts catalog.
+  - get_order and get_product (added 2026-08-18, beyond the original 5 actions plus list_contacts) reuse already-confirmed object shapes ($defs.order from create-order/list-orders, $defs.product from list-products) rather than modeling them fresh, since both objects are already live-verified elsewhere in this connector. Neither endpoint's own GET-by-id request/response pattern has ever been called live, though — this connector has direct precedent for that specific kind of assumption being wrong: get_contact's GET-by-id response turned out to be wrapped in a top-level `contact` key, a materially different shape from the flat placeholder originally modeled, and only became known once actually called live (see the get_contact entry above). get_order and get_product's outputs are currently modeled as FLAT objects — by analogy to create_order's confirmed flat response on the same commerce API — but that is an unverified assumption, not a finding, and could turn out wrong the same way get_contact's did. Do not treat either action as verified until each has actually been called live against a real order id and a real product id.

@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/get-order.schema.json",
+  "title": "squarespace.get_order",
+  "description": "Input/output contract for retrieving a single order by id. GET /orders/{id} on the commerce base URL (https://api.squarespace.com/1.0/commerce). This is a 7th action, added beyond the 5 originally scoped in connector.yaml plus list_contacts, once those six were complete. VERIFICATION STATUS: the order OBJECT SHAPE ($defs.order below) is already CONFIRMED — duplicated verbatim from create-order.schema.json/list-orders.schema.json's identical $defs.order, both live-verified 2026-08-16 against a real order (see fixtures/create-order-response.json, fixtures/orders-populated.json). What is NOT confirmed is this endpoint's own GET-by-id request/response pattern: only GET /orders (list_orders) and POST /orders (create_order) have ever been called live against this API — GET /orders/{id} has not. Unverified specifically: whether Squarespace exposes this endpoint at all, what it returns for a nonexistent id, and whether the response is wrapped in a top-level key (the way get_contact's GET-by-id turned out to be — `{ contact: {...} }`, a correction from an earlier flat placeholder model) or returned flat (the way create_order's response is, on this same commerce API). This schema models the output as FLAT (`$ref: #/$defs/order` directly, no wrapper) by analogy to create_order's confirmed flat response — but that is an assumption carried over from a sibling endpoint, not a live finding, and get_contact is direct precedent in this project for that kind of assumption turning out wrong. Needs live verification before this action can be trusted in production — see connector.yaml's known_limitations.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "GetOrderInput",
+      "type": "object",
+      "description": "Retrieval is by order id, appended to the commerce base as GET /orders/{id}. Unlike the contacts base, the commerce base URL does not already end in /orders, so no segment-doubling concern exists structurally the way it did for get_contact's resolveUrl() dedup logic — but whether Squarespace's API actually serves this path at all is UNCONFIRMED; it has never been called live.",
+      "required": ["id"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Order identifier, e.g. the `id` field on a list_orders or create_order response (real observed ids look like \"6a81716f0589b404e7529648\"). No format is enforced beyond non-empty."
+        }
+      }
+    },
+    "output": {
+      "title": "GetOrderResult",
+      "$ref": "#/$defs/order",
+      "description": "UNCONFIRMED whether this response is wrapped in a top-level key or flat — modeled here as flat by analogy to create_order's confirmed response shape on the same commerce API. See this schema's top-level VERIFICATION STATUS."
+    }
+  },
+  "examples": [
+    {
+      "description": "ILLUSTRATIVE, not a live capture through this endpoint — this endpoint has never itself been called. The order object below is the real, confirmed $defs.order shape (verbatim from create-order.schema.json's live-captured example, customerEmail replaced with a placeholder), shown here under the flat-output assumption this schema currently models. If live testing finds the real response wrapped in a key instead, this example and the output schema both need updating.",
+      "input": { "id": "6a81716f0589b404e7529648" },
+      "output": {
+        "id": "6a81716f0589b404e7529648",
+        "orderNumber": "1",
+        "createdOn": "2026-08-16T08:14:10Z",
+        "modifiedOn": "2026-08-16T08:14:39.705Z",
+        "channel": "external",
+        "testmode": false,
+        "customerEmail": "buyer@example.com",
+        "customerId": "6a7afd9c3a715540f23e0a54",
+        "billingAddress": null,
+        "shippingAddress": null,
+        "fulfillmentStatus": "PENDING",
+        "lineItems": [
+          {
+            "id": "6a81716fc8fe4c0001305355",
+            "variantId": "303079a3-a085-45aa-8814-ce63e140c2b4",
+            "sku": "SQ4985207",
+            "weight": 0,
+            "width": 0,
+            "length": 0,
+            "height": 0,
+            "productId": "6a72f2378d7a8a3a29161789",
+            "productName": "Test Product — Canvas Tote Bag",
+            "quantity": 1,
+            "unitPricePaid": { "currency": "USD", "value": "20.00" },
+            "variantOptions": [{ "optionName": "Size", "value": "Small" }],
+            "customizations": null,
+            "imageUrl": "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
+            "lineItemType": "PHYSICAL_PRODUCT"
+          }
+        ],
+        "internalNotes": [],
+        "shippingLines": [],
+        "discountLines": [],
+        "formSubmission": null,
+        "fulfillments": [],
+        "subtotal": { "currency": "USD", "value": "20.00" },
+        "shippingTotal": { "currency": "USD", "value": "0.00" },
+        "discountTotal": { "currency": "USD", "value": "0.00" },
+        "taxTotal": { "currency": "USD", "value": "0.00" },
+        "refundedTotal": { "currency": "USD", "value": "0.00" },
+        "grandTotal": { "currency": "USD", "value": "20.00" },
+        "channelName": "DOO Connector Test",
+        "externalOrderReference": "TEST-CONNECTOR-002",
+        "fulfilledOn": null,
+        "priceTaxInterpretation": "EXCLUSIVE",
+        "paymentState": "PAID",
+        "shippingOptionName": null,
+        "shippingOptionServiceType": null
+      }
+    }
+  ],
+  "$defs": {
+    "money": {
+      "title": "Money",
+      "type": "object",
+      "description": "Duplicated from list-orders.schema.json/create-order.schema.json's identical $def, consistent with how list-contacts.schema.json handled shared shapes (duplicated $defs, not cross-file $ref).",
+      "required": ["currency", "value"],
+      "properties": {
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "value": { "type": "string", "pattern": "^-?\\d+(\\.\\d+)?$" }
+      }
+    },
+    "fulfillmentStatus": {
+      "type": "string",
+      "enum": ["PENDING", "FULFILLED", "CANCELED"],
+      "description": "UNVERIFIED enum members — confirm against a live order before relying on these values. Duplicated from list-orders.schema.json's identical $def."
+    },
+    "address": {
+      "title": "Address",
+      "type": "object",
+      "description": "Duplicated from list-orders.schema.json's identical $def.",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "address1": { "type": "string" },
+        "address2": { "type": ["string", "null"] },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postalCode": { "type": "string" },
+        "phone": { "type": "string" }
+      }
+    },
+    "lineItem": {
+      "title": "OrderLineItem",
+      "type": "object",
+      "description": "CONFIRMED live, 2026-08-16, against a real order's response via list_orders/create_order. Duplicated from list-orders.schema.json's identical $def.",
+      "required": ["id", "quantity"],
+      "properties": {
+        "id": { "type": "string" },
+        "variantId": { "type": ["string", "null"], "format": "uuid" },
+        "sku": { "type": ["string", "null"] },
+        "productId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
+        "productName": { "type": "string" },
+        "quantity": { "type": "integer", "minimum": 1 },
+        "unitPricePaid": { "$ref": "#/$defs/money" },
+        "lineItemType": { "type": "string", "description": "CONFIRMED live, 2026-08-16 — echoes the request's lineItemType, e.g. \"PHYSICAL_PRODUCT\"." },
+        "weight": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "width": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "length": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "height": { "type": "number", "description": "CONFIRMED live, 2026-08-16." },
+        "variantOptions": {
+          "type": "array",
+          "description": "CONFIRMED live, 2026-08-16.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "optionName": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        },
+        "customizations": { "type": ["array", "null"], "description": "CONFIRMED live, 2026-08-16 — null when the line item has none." },
+        "imageUrl": { "type": "string", "description": "CONFIRMED live, 2026-08-16." }
+      }
+    },
+    "order": {
+      "title": "Order",
+      "type": "object",
+      "description": "CONFIRMED live, 2026-08-16, via create_order/list_orders against a real order — duplicated verbatim from list-orders.schema.json's identical $defs.order. NOT itself confirmed via get_order — see this schema's top-level VERIFICATION STATUS for what specifically remains unverified about this endpoint.",
+      "required": ["id", "orderNumber", "createdOn", "lineItems", "grandTotal"],
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "modifiedOn": { "type": "string", "format": "date-time" },
+        "testmode": { "type": "boolean" },
+        "channel": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"external\"." },
+        "channelName": { "type": "string" },
+        "externalOrderReference": { "type": "string" },
+        "customerEmail": { "type": "string", "format": "email" },
+        "customerId": { "type": "string", "description": "CONFIRMED live, 2026-08-16." },
+        "fulfillmentStatus": { "$ref": "#/$defs/fulfillmentStatus" },
+        "fulfilledOn": { "type": ["string", "null"], "format": "date-time", "description": "CONFIRMED live, 2026-08-16 — null when unfulfilled." },
+        "fulfillments": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array on an unfulfilled order." },
+        "billingAddress": { "$ref": "#/$defs/address" },
+        "shippingAddress": { "$ref": "#/$defs/address" },
+        "lineItems": { "type": "array", "items": { "$ref": "#/$defs/lineItem" } },
+        "internalNotes": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "shippingLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised against a populated case." },
+        "discountLines": { "type": "array", "description": "CONFIRMED live, 2026-08-16 — empty array observed; item shape not yet exercised." },
+        "formSubmission": { "type": ["object", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed; populated shape unconfirmed." },
+        "priceTaxInterpretation": { "type": "string", "enum": ["EXCLUSIVE", "INCLUSIVE"] },
+        "paymentState": { "type": "string", "description": "CONFIRMED live, 2026-08-16, e.g. \"PAID\". Other enum members unconfirmed." },
+        "shippingOptionName": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
+        "shippingOptionServiceType": { "type": ["string", "null"], "description": "CONFIRMED live, 2026-08-16 — null observed." },
+        "subtotal": { "$ref": "#/$defs/money" },
+        "shippingTotal": { "$ref": "#/$defs/money" },
+        "discountTotal": { "$ref": "#/$defs/money" },
+        "taxTotal": { "$ref": "#/$defs/money" },
+        "refundedTotal": { "$ref": "#/$defs/money" },
+        "grandTotal": { "$ref": "#/$defs/money" }
+      }
+    }
+  }
+}
