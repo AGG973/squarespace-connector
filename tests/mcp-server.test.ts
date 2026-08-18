@@ -27,7 +27,7 @@ describe("mcp/server tools/list", () => {
     client = undefined;
   });
 
-  it("returns exactly the 6 expected tools with valid-looking schemas", async () => {
+  it("returns exactly the 7 expected tools with valid-looking schemas", async () => {
     client = await connectClient();
 
     const { tools } = await client.listTools();
@@ -39,6 +39,7 @@ describe("mcp/server tools/list", () => {
       "squarespace.get_or_adjust_inventory",
       "squarespace.create_order",
       "squarespace.get_contact",
+      "squarespace.list_contacts",
     ]);
 
     for (const tool of tools) {
@@ -85,5 +86,8 @@ describe("mcp/server tools/list", () => {
     const getContact = tools.find((tool) => tool.name === "squarespace.get_contact");
     expect(getContact?.inputSchema.required).toEqual(["id"]);
     expect(getContact?.inputSchema.properties).toHaveProperty("id");
+
+    const listContacts = tools.find((tool) => tool.name === "squarespace.list_contacts");
+    expect(listContacts?.inputSchema.properties).toHaveProperty("cursor");
   });
 });

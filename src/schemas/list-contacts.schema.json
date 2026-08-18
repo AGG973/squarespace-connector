@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AGG973/squarespace-connector/schemas/list-contacts.schema.json",
+  "title": "squarespace.list_contacts",
+  "description": "Input/output contract for listing contacts. GET /contacts on the contacts base URL (https://api.squarespace.com/v1/contacts). This is a 6th action, added beyond the 5 originally scoped in connector.yaml, once those five were complete — the mission board explicitly welcomes extra actions. It reuses infrastructure that was already confirmed rather than modeled fresh: the response envelope (top-level `contacts` array key + `pagination`) and the per-contact shape were already verified via get_contact's live testing and documented in get-contact.schema.json's `contactListResult` $def specifically so a list_contacts action could reuse them later (see that file's note: 'Use it if a list_contacts action is added later.'). VERIFICATION STATUS: the envelope shape and the `contact` object shape are CONFIRMED — the envelope against a real, empty GET /contacts response (fixtures/contacts.json, captured 2026-08-11 alongside get_contact's testing) and the per-contact fields against the one real contact record get_contact retrieved (see get-contact.schema.json's VERIFICATION STATUS for the full field-by-field breakdown, including the CONFIRMED absence of `tags`/notes and the still-unconfirmed `lists` field). What is NOT confirmed: this endpoint's own request/response behavior has never itself been called live — specifically, whether `cursor` on THIS endpoint behaves like list_products' (confirmed to combine with other params) or list_orders' (confirmed to exclude several params), or has some third behavior of its own. Do not assume either without testing this endpoint directly — see connector.yaml's known_limitations for the established pattern of cursor-exclusivity assumptions being disproven per-endpoint across this connector.",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "title": "ListContactsInput",
+      "type": "object",
+      "description": "UNCONFIRMED — modeled by analogy to list-products.schema.json/list-orders.schema.json's `cursor` field, not tested against this endpoint. Whether `cursor` alone is accepted, what it excludes (if anything), and whether any other query parameters exist on this endpoint are all unverified.",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Opaque cursor from a previous response's pagination.nextPageCursor. UNCONFIRMED on this endpoint specifically — modeled by analogy to list_products/list_orders, not live-tested."
+        }
+      }
+    },
+    "output": {
+      "title": "ListContactsResult",
+      "type": "object",
+      "description": "CONFIRMED envelope shape — matches get-contact.schema.json's `contactListResult` $def, verified against fixtures/contacts.json (a real, empty GET /contacts response). Note the array key is `contacts`, unlike list_orders (`result`).",
+      "required": ["contacts", "pagination"],
+      "properties": {
+        "contacts": { "type": "array", "items": { "$ref": "#/$defs/contact" } },
+        "pagination": { "$ref": "#/$defs/pagination" }
+      }
+    }
+  },
+  "examples": [
+    {
+      "description": "CONFIRMED live, 2026-08-11 — the real captured empty-catalog response from GET /contacts, byte for byte from fixtures/contacts.json. The only real data point this endpoint itself has been exercised against so far; a populated response (and the per-contact fields within it) is inferred from get_contact's separate live testing rather than observed through list_contacts itself.",
+      "input": {},
+      "output": {
+        "contacts": [],
+        "pagination": { "nextPageUrl": null, "nextPageCursor": null, "hasNextPage": false }
+      }
+    }
+  ],
+  "$defs": {
+    "pagination": {
+      "title": "Pagination",
+      "type": "object",
+      "description": "Cursor pagination envelope. CONFIRMED against fixtures/contacts.json (this endpoint's own real, empty-catalog capture). Duplicated from get-contact.schema.json's identical $def, consistent with how other schema files (e.g. list-products.schema.json) each carry their own copy rather than cross-referencing another file.",
+      "required": ["nextPageUrl", "nextPageCursor", "hasNextPage"],
+      "properties": {
+        "nextPageUrl": { "type": ["string", "null"], "format": "uri" },
+        "nextPageCursor": { "type": ["string", "null"] },
+        "hasNextPage": { "type": "boolean" }
+      }
+    },
+    "contactAddress": {
+      "title": "ContactAddress",
+      "type": "object",
+      "description": "Note this has no firstName/lastName/phone, unlike the commerce Address used on orders. Duplicated from get-contact.schema.json's identical $def.",
+      "properties": {
+        "address1": { "type": "string" },
+        "address2": { "type": ["string", "null"] },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postalCode": { "type": "string" }
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "type": "object",
+      "description": "Duplicated from get-contact.schema.json's identical $def (CONFIRMED live, 2026-08-11, against exactly one real contact record, retrieved via get_contact — not via this action). `tags` and internal notes are CONFIRMED live, 2026-08-16, to never appear in this response regardless of whether the contact has them. `lists` remains unconfirmed either way. See get-contact.schema.json and connector.yaml's known_limitations for the full methodology.",
+      "required": ["id", "createdOn", "primaryEmail"],
+      "properties": {
+        "id": { "type": "string" },
+        "createdOn": { "type": "string", "format": "date-time" },
+        "firstName": { "type": ["string", "null"] },
+        "lastName": { "type": ["string", "null"], "description": "Observed as an empty string, not null, on the one confirmed record — kept nullable since that wasn't exercised." },
+        "locale": { "type": ["string", "null"], "description": "CONFIRMED present (observed null); format/values unverified." },
+        "primaryEmail": {
+          "type": "object",
+          "description": "CONFIRMED live, 2026-08-11 (via get_contact). Replaces the earlier modeled flat `email`/`transactionalEmailStatus` fields, which do not exist on the real response.",
+          "required": ["email"],
+          "properties": {
+            "email": { "type": "string", "format": "email" },
+            "createdOn": { "type": "string", "format": "date-time" },
+            "acceptsMarketing": {
+              "type": "object",
+              "properties": {
+                "acceptsMarketing": { "type": "boolean" },
+                "joinedOn": { "type": ["string", "null"], "format": "date-time" },
+                "leftOn": { "type": ["string", "null"], "format": "date-time" }
+              }
+            }
+          }
+        },
+        "defaultShippingAddress": {
+          "description": "CONFIRMED live, 2026-08-11, only as `null` on the one observed record — shape when non-null is UNVERIFIED. Replaces the earlier modeled `address` field, which does not exist on the real response.",
+          "anyOf": [{ "$ref": "#/$defs/contactAddress" }, { "type": "null" }]
+        }
+      }
+    }
+  }
+}

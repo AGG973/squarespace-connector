@@ -1,6 +1,6 @@
 # squarespace-connector
 
-A typed connector for the Squarespace Commerce (`1.0`) and Contacts (`v1`) APIs, exposing five actions through both a direct TypeScript interface (`src/connector.ts`) and an MCP server (`mcp/server.ts`) — stdio for local use, Streamable HTTP for hosted deployment.
+A typed connector for the Squarespace Commerce (`1.0`) and Contacts (`v1`) APIs, exposing six actions through both a direct TypeScript interface (`src/connector.ts`) and an MCP server (`mcp/server.ts`) — stdio for local use, Streamable HTTP for hosted deployment.
 
 ## What this connector does
 
@@ -19,6 +19,7 @@ Authenticates with a Squarespace personal Developer API Key (sent as a Bearer to
 | `squarespace.list_orders` | read | List orders, filterable by modification time window or fulfillment status. |
 | `squarespace.create_order` | write | Create a new order. Irreversible, rate-limited (100/hour/site), and requires approval before execution. |
 | `squarespace.get_contact` | read | Retrieve a single contact record by id. |
+| `squarespace.list_contacts` | read | List contacts. Added beyond the original 5 — reuses `get_contact`'s confirmed envelope/shape; its own cursor behavior is unconfirmed. |
 
 ## Setup
 

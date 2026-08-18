@@ -239,6 +239,15 @@ const ROUTES: ActionRoute[] = [
     inputMode: "path",
   },
   {
+    schemaFile: "list-contacts.schema.json",
+    prefix: "ListContacts",
+    connectorActionId: "squarespace.list_contacts",
+    operationId: "listContacts",
+    method: "get",
+    path: "/contacts",
+    inputMode: "query",
+  },
+  {
     schemaFile: null,
     prefix: "TestConnection",
     connectorActionId: null,
@@ -463,9 +472,10 @@ const doc = {
       ? { license: { name: packageJson.license, identifier: packageJson.license } }
       : {}),
     description:
-      `REST/HTTP surface for the ${connectorYaml.provider} connector, wrapping the 5 actions declared in ` +
-      `connector.yaml (list_products, get_or_adjust_inventory, list_orders, create_order, get_contact) plus ` +
-      `a testConnection operational helper. This describes the connector's OWN future HTTP API — not yet ` +
+      `REST/HTTP surface for the ${connectorYaml.provider} connector, wrapping the 6 actions declared in ` +
+      `connector.yaml (list_products, get_or_adjust_inventory, list_orders, create_order, get_contact, ` +
+      `list_contacts) plus a testConnection operational helper. This describes the connector's OWN future ` +
+      `HTTP API — not yet ` +
       `deployed, see the servers block — and is distinct from the Squarespace API itself, which this ` +
       `connector calls server-side. ${connectorYaml.auth.notes.trim()} That Squarespace API key is held ` +
       `server-side and never exposed through this API; the bearer token defined below authenticates callers ` +

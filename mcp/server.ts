@@ -133,6 +133,16 @@ const TOOLS: Tool[] = [
       "field. Requires id.",
     inputSchema: loadInputSchema("get-contact.schema.json"),
   },
+  {
+    name: "squarespace.list_contacts",
+    description:
+      "List contacts. A 6th action, added beyond connector.yaml's original 5. The response " +
+      "envelope (`contacts` array + pagination) and per-contact shape are CONFIRMED, reused " +
+      "from get_contact's live testing. This endpoint's own cursor behavior has NOT itself " +
+      "been tested live — don't assume it matches list_products' or list_orders' confirmed " +
+      "cursor rules.",
+    inputSchema: loadInputSchema("list-contacts.schema.json"),
+  },
 ];
 
 /** Pulls `{ code, message, ... }`-shaped details out of any thrown value for error content. */
@@ -170,7 +180,8 @@ async function callTool(
     name === "squarespace.list_orders" ||
     name === "squarespace.get_or_adjust_inventory" ||
     name === "squarespace.create_order" ||
-    name === "squarespace.get_contact"
+    name === "squarespace.get_contact" ||
+    name === "squarespace.list_contacts"
   ) {
     const output = await execute({ actionId: name, input: args });
     return textResult(output);

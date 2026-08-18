@@ -7,6 +7,7 @@ import {
 } from "./actions/get-or-adjust-inventory.ts";
 import { createOrder, type CreateOrderInput } from "./actions/create-order.ts";
 import { getContact, type GetContactInput } from "./actions/get-contact.ts";
+import { listContacts, type ListContactsInput } from "./actions/list-contacts.ts";
 
 export type TestConnectionResult =
   | { success: true }
@@ -29,13 +30,17 @@ export async function testConnection(): Promise<TestConnectionResult> {
   }
 }
 
-/** The 5 action IDs declared in connector.yaml. */
+/**
+ * The 6 action IDs declared in connector.yaml — the 5 originally scoped,
+ * plus list_contacts, added beyond scope once those five were complete.
+ */
 export const ACTION_IDS = [
   "squarespace.list_products",
   "squarespace.get_or_adjust_inventory",
   "squarespace.list_orders",
   "squarespace.create_order",
   "squarespace.get_contact",
+  "squarespace.list_contacts",
 ] as const;
 
 export type ActionId = (typeof ACTION_IDS)[number];
@@ -47,6 +52,7 @@ const IMPLEMENTED_ACTION_IDS: ReadonlySet<ActionId> = new Set([
   "squarespace.get_or_adjust_inventory",
   "squarespace.create_order",
   "squarespace.get_contact",
+  "squarespace.list_contacts",
 ]);
 
 export interface ActionListing {
@@ -83,7 +89,7 @@ export interface ExecuteRequest {
  * DooConnector `execute` entry point).
  *
  * @throws {ConnectorError} code "UNKNOWN_ACTION" for an actionId
- * connector.yaml doesn't declare at all. All 5 declared actions are now
+ * connector.yaml doesn't declare at all. All 6 declared actions are now
  * wired up — none currently throw "NOT_IMPLEMENTED".
  */
 export async function execute({ actionId, input }: ExecuteRequest): Promise<unknown> {
@@ -98,6 +104,8 @@ export async function execute({ actionId, input }: ExecuteRequest): Promise<unkn
       return createOrder(input as CreateOrderInput);
     case "squarespace.get_contact":
       return getContact(input as GetContactInput);
+    case "squarespace.list_contacts":
+      return listContacts(input as ListContactsInput | undefined);
     default:
       throw new ConnectorError("UNKNOWN_ACTION", `Unknown actionId: "${actionId}"`);
   }
