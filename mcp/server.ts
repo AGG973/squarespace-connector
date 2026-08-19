@@ -148,19 +148,22 @@ const TOOLS: Tool[] = [
     description:
       "Retrieve a single order by id. GET /orders/{id} on the commerce base. The order OBJECT " +
       "SHAPE is CONFIRMED, reused from create_order's and list_orders' live testing. This " +
-      "endpoint's own GET-by-id request/response pattern has NOT itself been tested live — " +
-      "whether it exists, and whether its response is wrapped in a key (like get_contact's " +
-      "turned out to be) or flat (as modeled here, by analogy to create_order), is unconfirmed.",
+      "endpoint's own GET-by-id request/response pattern has NOT itself been tested live " +
+      "(this account has had zero orders every time it's been checked) — modeled here as flat, " +
+      "by analogy to create_order, but its sibling get_product disproved that identical " +
+      "assumption on 2026-08-19 (real shape turned out to be `{ products: [...] }`, not flat) " +
+      "— treat get_order's flat shape as an unverified hypothesis, not a finding.",
     inputSchema: loadInputSchema("get-order.schema.json"),
   },
   {
     name: "squarespace.get_product",
     description:
-      "Retrieve a single product by id. GET /products/{id} on the commerce base. The product " +
-      "OBJECT SHAPE is CONFIRMED, reused from list_products' live testing. This endpoint's own " +
-      "GET-by-id request/response pattern has NOT itself been tested live — whether it exists, " +
-      "and whether its response is wrapped in a key (like get_contact's turned out to be) or " +
-      "flat (as modeled here, by analogy to create_order), is unconfirmed.",
+      "Retrieve a single product by id. GET /products/{id} on the commerce base. CONFIRMED " +
+      "live, 2026-08-19, against a real product id. The response is `{ products: [ {...} ] }` " +
+      "— the same top-level `products` array key list_products uses, holding a single-item " +
+      "array, with no `pagination` key. This disproved the earlier flat-by-analogy assumption " +
+      "and differs from get_contact's `{ contact: {...} }` singular-key wrap too — a third " +
+      "distinct envelope pattern in this connector.",
     inputSchema: loadInputSchema("get-product.schema.json"),
   },
 ];

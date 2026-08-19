@@ -1,21 +1,5 @@
-# squarespace.get_product
-
-Retrieve a single product by id. Read-only, `GET /products/{id}`.
-
-An 8th action, added beyond connector.yaml's originally-scoped 5 plus `list_contacts` and `get_order`, once those seven were complete.
-
-**CONFIRMED live, 2026-08-19**, against a real product id. This disproved the action's original assumption — that the response would be a FLAT object, by analogy to `create_order`'s confirmed flat response on the same commerce API. It isn't. The real shape is `{ "products": [ {...} ] }` — the **same top-level `products` array key** `list_products` uses for its collection response, holding a **single-item array**, with **no `pagination` key at all** (confirmed absent, unlike `list_products`). It's also not `{ "product": {...} }`, the singular-key wrap `squarespace.get_contact`'s GET-by-id turned out to use — so this connector now has three GET/create-single-record endpoints with three different envelope shapes, none safely inferable from either of the other two.
-
-## Request
-
-```json
-{ "id": "6a82c75d452f993158f1ae4b" }
-```
-
-## Response (real, confirmed — see `fixtures/product-by-id.json`)
-
-```json
 {
+  "_comment": "CONFIRMED live, 2026-08-19 — real captured response from GET /products/{id} (id 6a82c75d452f993158f1ae4b, the 'Test Product — Canvas Tote Bag' on the newer of the two Squarespace test accounts this connector has been run against, distinguishable by its Navy/black/White Color variants vs. the older account's Small/Medium/Large Size variants). Superseded the earlier UNCONFIRMED assumption that this endpoint returns the product FLAT, by analogy to create_order's confirmed flat response. It does not: the real shape is `{ products: [ {...} ] }` — the SAME top-level `products` array key as list_products' collection response, holding a single-item array for a valid id, and NOT `{ product: {...} }` either (the singular-key wrap get_contact's GET-by-id turned out to use). Also notable: unlike list_products, this response has no `pagination` key at all — confirmed absent, not merely unconfirmed. No fields were redacted; this is the full, real, byte-for-byte response body.",
   "products": [
     {
       "id": "6a82c75d452f993158f1ae4b",
@@ -96,8 +80,3 @@ An 8th action, added beyond connector.yaml's originally-scoped 5 plus `list_cont
     }
   ]
 }
-```
-
-No redaction — product catalog data has no PII. Note this product's `Color` variant attribute (Navy/black/White): it's from a different Squarespace test account than the one `list-products.md`'s and other examples' `Size` (Small/Medium/Large) captures came from — this connector has been run against two different test accounts over its development.
-
-What's still unconfirmed: whether the `products` array can be empty or hold more than one item — e.g. for a nonexistent id, a 404 vs. an empty array was not itself tested. See `src/schemas/get-product.schema.json` for the complete contract and `connector.yaml`'s `known_limitations` for the full finding, including how this relates to `get_order`'s still-unverified analogous assumption.

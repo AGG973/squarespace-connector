@@ -5,12 +5,15 @@ export interface GetProductInput {
 }
 
 /**
- * Raw product shape from Squarespace. The object shape is already
- * confirmed elsewhere (matches list-products.schema.json's $defs.product
- * exactly), but this GET-by-id endpoint has never itself been called
- * live, so whether the response is wrapped in a key (as get_contact's
- * turned out to be) or flat is unconfirmed — kept as an open record
- * rather than the schema's precise field list.
+ * Raw response shape from Squarespace. CONFIRMED live, 2026-08-19: this is
+ * `{ products: [ {...} ] }` — the same top-level `products` array key
+ * list_products uses, holding a single-item array, with no `pagination`
+ * key. Neither of the two prior assumptions (flat, or `{ product: {...} }`
+ * like get_contact) was correct — see
+ * src/schemas/get-product.schema.json's VERIFICATION STATUS. Kept as an
+ * open record rather than the schema's precise field list, matching
+ * get-contact.ts's convention for this connector's other GET-by-id
+ * actions.
  */
 export type GetProductResult = Record<string, unknown>;
 
@@ -31,11 +34,9 @@ function assertValidInput(input: Partial<GetProductInput> | null | undefined): v
  * (https://api.squarespace.com/1.0/commerce). Unlike the contacts base,
  * COMMERCE_BASE_URL does not already end in /products, so client.ts's
  * resolveUrl() appends the segment normally without needing the dedup
- * logic get_contact required — but this specific GET-by-id call has never
- * been made against the live API. Whether Squarespace exposes this
- * endpoint at all, and whether its response is wrapped in a key or flat,
- * are both UNCONFIRMED — see src/schemas/get-product.schema.json's
- * VERIFICATION STATUS.
+ * logic get_contact required. CONFIRMED live, 2026-08-19, against a real
+ * product id — see src/schemas/get-product.schema.json's VERIFICATION
+ * STATUS for the confirmed `{ products: [...] }` envelope shape.
  */
 export async function getProduct(input: GetProductInput): Promise<GetProductResult> {
   assertValidInput(input);

@@ -10,58 +10,63 @@ vi.mock("../src/client", () => ({
 
 import { getProduct } from "../src/actions/get-product";
 
-const PRODUCT_ID = "6a72f2378d7a8a3a29161789";
+const PRODUCT_ID = "6a82c75d452f993158f1ae4b";
 
 /**
- * The already-confirmed product shape, from fixtures/products.json
- * (CONFIRMED live via list_products — not via this endpoint, which has
- * never itself been called).
+ * The real response shape, from fixtures/product-by-id.json — CONFIRMED
+ * live, 2026-08-19, via this endpoint itself. Wrapped in the same
+ * top-level `products` array key list_products uses, holding a
+ * single-item array, with no `pagination` key — disproving the earlier
+ * flat-response assumption (see connector.yaml's known_limitations).
  */
 const productResponse = {
-  id: PRODUCT_ID,
-  type: "PHYSICAL",
-  storePageId: "6a72f2207b60d851f2d2f110",
-  name: "Test Product — Canvas Tote Bag",
-  description:
-    '<p style="white-space:pre-wrap;" data-rte-preserve-empty="true">Sample product created for Squarespace connector testing.</p>',
-  url: "https://jaguar-mandolin-z8g5.squarespace.com/shop/p/test-product-canvas-tote-bag",
-  urlSlug: "p/test-product-canvas-tote-bag",
-  images: [
+  products: [
     {
-      id: "6a72f40a98f72327f79ad890",
-      altText: "tote bag.jpg",
-      orderIndex: 0,
-      url: "https://images.squarespace-cdn.com/content/v1/6a72f2207b60d851f2d2f0f0/b80ab8e5-dfd9-4329-b18d-aa853d6c982a/tote+bag.jpg",
-      originalSize: { width: 1200, height: 1600 },
-      availableFormats: [],
+      id: PRODUCT_ID,
+      type: "PHYSICAL",
+      storePageId: "6a82c4265d10fd30e43b2d43",
+      name: "Test Product — Canvas Tote Bag",
+      description: "",
+      url: "https://soybean-apricot-tett.squarespace.com/shop/p/test-product-canvas-tote-bag",
+      urlSlug: "p/test-product-canvas-tote-bag",
+      images: [
+        {
+          id: "6a82c7ba762f55650d9c1eef",
+          altText: "tote bag.jpg",
+          orderIndex: 0,
+          url: "https://images.squarespace-cdn.com/content/v1/6a82c4255d10fd30e43b2d0d/4912c5a2-bc61-4fa1-934c-dc90eade70a6/tote+bag.jpg",
+          originalSize: { width: 1200, height: 1600 },
+          availableFormats: [],
+        },
+      ],
+      tags: [],
+      isVisible: true,
+      variantAttributes: ["Color"],
+      variants: [
+        {
+          id: "70c579d9-d597-41d7-9315-ba4beb0a9619",
+          sku: "SQ8906515",
+          pricing: {
+            basePrice: { currency: "USD", value: "20.00" },
+            salePrice: { currency: "USD", value: "0.00" },
+            onSale: false,
+          },
+          stock: { quantity: 3, unlimited: false },
+          attributes: { Color: "Navy" },
+          shippingMeasurements: {
+            weight: { unit: "POUND", value: 30 },
+            dimensions: { unit: "INCH", length: 20, width: 10, height: 100 },
+          },
+          image: null,
+        },
+      ],
+      seoOptions: null,
+      createdOn: "2026-08-17T08:33:33.285Z",
+      modifiedOn: "2026-08-17T08:36:02.620Z",
+      pricing: null,
+      digitalGood: null,
     },
   ],
-  tags: [],
-  isVisible: false,
-  variantAttributes: ["Size"],
-  variants: [
-    {
-      id: "303079a3-a085-45aa-8814-ce63e140c2b4",
-      sku: "SQ4985207",
-      pricing: {
-        basePrice: { currency: "USD", value: "20.00" },
-        salePrice: { currency: "USD", value: "0.00" },
-        onSale: false,
-      },
-      stock: { quantity: 10, unlimited: false },
-      attributes: { Size: "Small" },
-      shippingMeasurements: {
-        weight: { unit: "POUND", value: 0 },
-        dimensions: { unit: "INCH", length: 0, width: 0, height: 0 },
-      },
-      image: null,
-    },
-  ],
-  seoOptions: null,
-  createdOn: "2026-08-05T08:20:07.834Z",
-  modifiedOn: "2026-08-05T08:27:55.973Z",
-  pricing: null,
-  digitalGood: null,
 };
 
 beforeEach(() => {
@@ -95,10 +100,9 @@ describe("getProduct — request path", () => {
     await getProduct({ id: PRODUCT_ID });
 
     // squarespaceRequest is mocked here, so this only proves *our* action
-    // builds the right path — it does not by itself prove Squarespace's
-    // live API actually exposes GET /products/{id}, or that its real
-    // response matches this shape. That's unconfirmed — see the schema's
-    // VERIFICATION STATUS and connector.yaml's known_limitations.
+    // builds the right path. The path itself, and this response shape, ARE
+    // now confirmed live (2026-08-19) — see the schema's VERIFICATION
+    // STATUS and connector.yaml's known_limitations.
     expect(mockRequest).toHaveBeenCalledWith(`/products/${PRODUCT_ID}`);
   });
 
